@@ -25,7 +25,7 @@
 
   <nav class="nmb-tabs">
     {{#each tabs}}
-    <a class="nmb-tab {{#if active}}active{{/if}}" data-action="switchTab" data-tab="{{id}}">{{localize label}}</a>
+    <a class="nmb-tab {{#if active}}active{{/if}}" data-action="switchTab" data-tab="{{id}}">{{localize label}}{{#if badge}} <span class="nmb-badge" data-ability-count hidden></span>{{/if}}</a>
     {{/each}}
   </nav>
 
@@ -143,14 +143,56 @@
       </template>
     </section>
 
-    {{!-- Abilities (placeholder until the ability list arrives) --}}
+    {{!-- Abilities --}}
     <section class="nmb-panel {{#if tabs.2.active}}active{{/if}}" data-tab="abilities">
-      <p class="nmb-hint">{{localize "NMB.Builder.Abilities.Placeholder"}}</p>
-      <div class="nmb-row" data-for="standard">
-        <label for="nmb-abilities">{{localize "NMB.Builder.Fields.Abilities"}}</label>
-        <input id="nmb-abilities" type="number" name="abilities" value="0" min="0" max="10">
-      </div>
+      <p class="nmb-hint" data-for="standard">{{localize "NMB.Builder.Abilities.CostHint"}}</p>
       <p class="nmb-hint" data-for="minion">{{localize "NMB.Builder.Abilities.MinionNote"}}</p>
+
+      <div class="nmb-ability-tools">
+        <input type="search" data-ability-search placeholder="{{localize 'NMB.Builder.Abilities.Search'}}" aria-label="{{localize 'NMB.Builder.Abilities.Search'}}">
+        <label class="nmb-check"><input type="checkbox" data-ability-selected-only> {{localize "NMB.Builder.Abilities.SelectedOnly"}}</label>
+      </div>
+
+      <ul class="nmb-abilities" data-abilities>
+        {{#each abilities}}
+        <li class="nmb-ability-row" data-ability-id="{{id}}" data-search="{{search}}">
+          <label class="nmb-ability-main">
+            <input type="checkbox" data-field="enabled">
+            <span class="nmb-ability-name">{{name}}</span>
+          </label>
+          <span class="nmb-ability-text">{{text}}</span>
+          <div class="nmb-seg-group nmb-ability-cost" data-for="standard" role="radiogroup" aria-label="{{localize 'NMB.Builder.Abilities.CostLabel'}}">
+          <label class="nmb-seg"><input type="radio" name="cost-{{id}}" data-field="cost" value="hp"><span>{{localize "NMB.Builder.Abilities.CostHp"}}</span></label>
+          <label class="nmb-seg"><input type="radio" name="cost-{{id}}" data-field="cost" value="damage"><span>{{localize "NMB.Builder.Abilities.CostDamage"}}</span></label>
+          <label class="nmb-seg"><input type="radio" name="cost-{{id}}" data-field="cost" value="free" checked><span>{{localize "NMB.Builder.Abilities.CostFree"}}</span></label>
+        </div>
+        </li>
+        {{/each}}
+      </ul>
+
+      <h3 class="nmb-subheading">{{localize "NMB.Builder.Abilities.CustomHeading"}}</h3>
+      <div class="nmb-custom-abilities" data-custom-abilities></div>
+      <button type="button" class="nmb-add-attack" data-action="addCustomAbility">
+        <i class="fa-solid fa-plus"></i> {{localize "NMB.Builder.Abilities.AddCustom"}}
+      </button>
+
+      <template data-custom-ability-template>
+        <div class="nmb-custom-ability is-on">
+          <div class="nmb-custom-head">
+            <input type="text" data-field="name" placeholder="{{localize 'NMB.Builder.Abilities.CustomName'}}" aria-label="{{localize 'NMB.Builder.Abilities.CustomName'}}">
+            <button type="button" class="nmb-attack-remove" data-action="removeCustomAbility"
+                    aria-label="{{localize 'NMB.Builder.Abilities.RemoveCustom'}}" data-tooltip="{{localize 'NMB.Builder.Abilities.RemoveCustom'}}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+          <input type="text" data-field="text" placeholder="{{localize 'NMB.Builder.Abilities.CustomText'}}" aria-label="{{localize 'NMB.Builder.Abilities.CustomText'}}">
+          <div class="nmb-seg-group nmb-ability-cost" data-for="standard" role="radiogroup" aria-label="{{localize 'NMB.Builder.Abilities.CostLabel'}}">
+          <label class="nmb-seg"><input type="radio" name="ccost-__ID__" data-field="cost" value="hp"><span>{{localize "NMB.Builder.Abilities.CostHp"}}</span></label>
+          <label class="nmb-seg"><input type="radio" name="ccost-__ID__" data-field="cost" value="damage"><span>{{localize "NMB.Builder.Abilities.CostDamage"}}</span></label>
+          <label class="nmb-seg"><input type="radio" name="ccost-__ID__" data-field="cost" value="free" checked><span>{{localize "NMB.Builder.Abilities.CostFree"}}</span></label>
+        </div>
+        </div>
+      </template>
     </section>
 
     {{!-- Misc --}}

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   ARMOR_COL,
+  ABILITIES,
   DICE,
   ROWS,
+  abilityDescription,
   attackDescription,
   averageOf,
   buildDescription,
@@ -15,7 +17,8 @@ import {
   resolveStandard,
 } from "../scripts/lib/index.js";
 
-const base = { hpLevel: 3, dmgLevel: 3, armor: "none", die: "8", abilities: 0, abilityTo: "hp" };
+const base = { hpLevel: 3, dmgLevel: 3, armor: "none", die: "8", abilities: [] };
+const ability = (cost, name = "Sneak") => ({ name, text: "Invisible until they attack.", cost });
 
 describe("table", () => {
   it("has 23 rows of 9 columns", () => {
@@ -125,24 +128,38 @@ describe("resolveStandard", () => {
       expect(resolveStandard({ ...base, armor }).hp).toBe(ROWS[3][ARMOR_COL[armor]]);
     }
   });
-  it("lowers HP per ability by default target", () => {
-    const r = resolveStandard({ ...base, abilities: 2 });
+  it("lowers HP one row for each ability that costs HP", () => {
+    const r = resolveStandard({ ...base, abilities: [ability("hp"), ability("hp", "Parry")] });
     expect(r.hpLevel).toBe(ROWS[1][0]);
     expect(r.dmgLevel).toBe(ROWS[3][0]);
     expect(r.shifted).toBe(true);
   });
-  it("lowers damage when asked", () => {
-    const r = resolveStandard({ ...base, abilities: 1, abilityTo: "damage" });
+  it("lowers damage for abilities that cost damage", () => {
+    const r = resolveStandard({ ...base, abilities: [ability("damage")] });
     expect(r.hpLevel).toBe(ROWS[3][0]);
     expect(r.dmgLevel).toBe(ROWS[2][0]);
   });
-  it("alternates HP and damage", () => {
-    const r = resolveStandard({ ...base, abilities: 3, abilityTo: "split" });
-    expect(r.hpLevel).toBe(ROWS[1][0]);
+  it("mixes costs, and free abilities change nothing", () => {
+    const r = resolveStandard({ ...base, abilities: [ability("hp"), ability("damage"), ability("free")] });
+    expect(r.hpLevel).toBe(ROWS[2][0]);
     expect(r.dmgLevel).toBe(ROWS[2][0]);
+    expect(r.abilitySteps).toEqual({ hp: 1, damage: 1 });
   });
-  it("clamps at the table edges without reporting a shift for in-range picks", () => {
-    expect(resolveStandard({ ...base, hpLevel: 0, abilities: 5 }).hpLevel).toBe("1/4");
+  it("treats an ability with no cost chosen as free", () => {
+    const r = resolveStandard({ ...base, abilities: [ability(null), ability(undefined, "Parry")] });
+    expect(r.abilitySteps).toEqual({ hp: 0, damage: 0 });
+    expect(r.abilities).toHaveLength(2);
+    expect(r.hpLevel).toBe(ROWS[3][0]);
+    expect(r.shifted).toBe(false);
+  });
+  it("ignores abilities with no name", () => {
+    const r = resolveStandard({ ...base, abilities: [{ name: "  ", text: "x", cost: "hp" }] });
+    expect(r.abilities).toEqual([]);
+    expect(r.abilitySteps.hp).toBe(0);
+  });
+  it("clamps at the table edges", () => {
+    const abilities = Array.from({ length: 5 }, (_, i) => ability("hp", `A${i}`));
+    expect(resolveStandard({ ...base, hpLevel: 0, abilities }).hpLevel).toBe("1/4");
     expect(resolveStandard(base).shifted).toBe(false);
   });
   it("resolves each attack as an alternative using the full damage per round", () => {
@@ -180,6 +197,12 @@ describe("resolveMinion", () => {
     expect(r).toMatchObject({ mode: "minion", hp: null, canCrit: false, hpLevel: "1/4" });
     expect(r.attacks).toHaveLength(1);
     expect(r.attacks[0]).toMatchObject({ formula: "1d6", avg: 3.5, count: 1 });
+  });
+  it("adds abilities but never costs a step", () => {
+    const r = resolveMinion({ minionLevel: 0, die: 6, abilities: [ability("hp")] });
+    expect(r.abilities).toHaveLength(1);
+    expect(r.abilitySteps).toEqual({ hp: 0, damage: 0 });
+    expect(r.hpLevel).toBe("1/4");
   });
   it("uses the first attack's die", () => {
     expect(resolveMinion({ minionLevel: 0, die: 8, attacks: [{ die: 4 }] }).attacks[0].formula).toBe("1d4");
@@ -220,16 +243,40 @@ describe("escapeHtml", () => {
   });
 });
 
+describe("abilityDescription", () => {
+  it("wraps and escapes the text", () => {
+    expect(abilityDescription({ name: "X", text: "Hits <hard> & fast" })).toBe("<p>Hits &lt;hard&gt; &amp; fast</p>");
+  });
+  it("is empty without text", () => {
+    expect(abilityDescription({ name: "X", text: " " })).toBe("");
+  });
+});
+
+describe("ABILITIES", () => {
+  it("lists the GMG abilities with unique ids and text", () => {
+    expect(ABILITIES.length).toBeGreaterThanOrEqual(40);
+    expect(new Set(ABILITIES.map((a) => a.id)).size).toBe(ABILITIES.length);
+    for (const a of ABILITIES) {
+      expect(a.name).toBeTruthy();
+      expect(a.text).toBeTruthy();
+    }
+  });
+});
+
 describe("buildDescription", () => {
   it("states minion rules", () => {
-    const text = buildDescription(resolveMinion({ minionLevel: 0, die: 4 }), {});
+    const text = buildDescription(resolveMinion({ minionLevel: 0, die: 4 }));
     expect(text).toContain("No HP to track");
     expect(text).toContain("Save DC");
   });
-  it("mentions abilities and flunkies for standard monsters", () => {
-    const data = { ...base, abilities: 1, flunky: true };
-    const text = buildDescription(resolveStandard(data), data);
-    expect(text).toContain("1 special ability");
+  it("mentions abilities, their cost and flunkies for standard monsters", () => {
+    const data = { ...base, abilities: [ability("hp"), ability("free", "Parry")], flunky: true };
+    const text = buildDescription(resolveStandard(data));
+    expect(text).toContain("2 special abilities");
+    expect(text).toContain("1 off HP");
     expect(text).toContain("Flunky");
+  });
+  it("states the default speed, reach and saves", () => {
+    expect(buildDescription(resolveStandard(base))).toContain("speed 6");
   });
 });

@@ -1,7 +1,7 @@
 /** The builder window (ApplicationV2). */
 import { MODES, MODULE_ID } from "../constants.js";
 import { createMonster } from "../builder.js";
-import { DAMAGE_TYPE_GROUPS, DICE, MAX_ATTACK_COUNT, ROWS, SIZES, partyLevelRange, resolve } from "../lib/index.js";
+import { ABILITIES, DAMAGE_TYPE_GROUPS, DICE, MAX_ATTACK_COUNT, ROWS, SIZES, partyLevelRange, resolve } from "../lib/index.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -46,6 +46,8 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       toggleLink: MonsterBuilder.#onToggleLink,
       addAttack: MonsterBuilder.#onAddAttack,
       removeAttack: MonsterBuilder.#onRemoveAttack,
+      addCustomAbility: MonsterBuilder.#onAddCustomAbility,
+      removeCustomAbility: MonsterBuilder.#onRemoveCustomAbility,
       create: MonsterBuilder.#onCreate,
     },
   };
@@ -61,6 +63,7 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   levels = { ...DEFAULT_LEVEL };
   /** Counter that makes each attack card's radio group names unique. */
   #attackSeq = 0;
+  #customSeq = 0;
 
   /** Open the builder, or bring the existing window forward. */
   static open() {
@@ -77,7 +80,9 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
         id,
         label: `NMB.Builder.Tabs.${capitalize(id)}`,
         active: id === this.tab,
+        badge: id === "abilities",
       })),
+      abilities: ABILITIES.map((a) => ({ ...a, search: `${a.name} ${a.text}`.toLowerCase() })),
       defaultName: game.i18n.localize("NMB.Builder.DefaultName"),
       levels: ROWS.map((r, i) => ({
         value: i,
@@ -108,11 +113,18 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     form.addEventListener("submit", (event) => event.preventDefault());
     form.addEventListener("input", () => this.#refresh());
     form.addEventListener("change", (event) => {
-      if (event.target.matches('[data-field="damageType"]')) {
-        this.#applyAutoName(event.target.closest(".nmb-attack"), event.target.value);
+      const target = event.target;
+      if (target.matches('[data-field="damageType"]')) {
+        this.#applyAutoName(target.closest(".nmb-attack"), target.value);
+      } else if (target.matches('[data-field="enabled"]')) {
+        target.closest(".nmb-ability-row").classList.toggle("is-on", target.checked);
+        this.#filterAbilities();
+      } else if (target.matches("[data-ability-selected-only]")) {
+        this.#filterAbilities();
       }
       this.#refresh();
     });
+    form.querySelector("[data-ability-search]").addEventListener("input", () => this.#filterAbilities());
     this.#syncLinked();
     if (!form.querySelector(".nmb-attack")) this.#appendAttack();
     this.#refresh();
@@ -131,7 +143,7 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     data.hpLevel = separate ? data.hpLevel : data.level;
     data.dmgLevel = separate ? data.dmgLevel : data.level;
     data.minionLevel = data.level;
-    data.abilityTo = "hp"; // until the abilities tab lets each ability choose its cost
+    data.abilities = this.#readAbilities();
     data.attacks = this.#readAttacks();
     data.flunky = form.elements.flunky.checked;
     data.openSheet = form.elements.openSheet.checked;
@@ -176,6 +188,35 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   }
 
+  /** Ticked GMG abilities plus the custom ones that have a name, each with its chosen cost (or null). */
+  #readAbilities() {
+    const cost = (row) => row.querySelector('[data-field="cost"]:checked')?.value ?? null;
+    const listed = [...this.#form.querySelectorAll(".nmb-ability-row")]
+      .filter((row) => row.querySelector('[data-field="enabled"]').checked)
+      .map((row) => {
+        const ability = ABILITIES.find((a) => a.id === row.dataset.abilityId);
+        return { name: ability.name, text: ability.text, cost: cost(row) };
+      });
+    const custom = [...this.#form.querySelectorAll(".nmb-custom-ability")].map((row) => ({
+      name: row.querySelector('[data-field="name"]').value,
+      text: row.querySelector('[data-field="text"]').value,
+      cost: cost(row),
+    }));
+    return [...listed, ...custom];
+  }
+
+  /** Hide abilities that do not match the search, or that are not ticked when "selected only" is on. */
+  #filterAbilities() {
+    const form = this.#form;
+    const term = form.querySelector("[data-ability-search]").value.trim().toLowerCase();
+    const selectedOnly = form.querySelector("[data-ability-selected-only]").checked;
+    for (const row of form.querySelectorAll(".nmb-ability-row")) {
+      const matches = !term || row.dataset.search.includes(term);
+      const ticked = row.querySelector('[data-field="enabled"]').checked;
+      row.hidden = !(matches && (!selectedOnly || ticked));
+    }
+  }
+
   /**
    * Name an attack after its damage type ("Fire Attack") while the GM has not renamed it. The last generated
    * name is remembered on the card; the name only follows the damage type while it still matches that.
@@ -215,13 +256,25 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     set("saveDC", r.saveDC);
     set("cr", r.cr);
 
-    // The note only appears when special abilities moved HP to a lower table row.
+    // The note only appears when special abilities moved a table row.
     const note = el.querySelector("[data-summary]");
-    const baseHp = ROWS[Number(data.hpLevel)]?.[0];
-    note.hidden = minion || r.hpLevel === baseHp;
-    if (!note.hidden) {
-      note.textContent = i18n.format("NMB.Builder.AbilityNote", { from: baseHp, to: r.hpLevel });
+    const lines = [];
+    if (!minion) {
+      const changes = [];
+      const baseHp = ROWS[Number(data.hpLevel)]?.[0];
+      const baseDmg = ROWS[Number(data.dmgLevel)]?.[0];
+      if (r.hpLevel !== baseHp) changes.push(i18n.format("NMB.Builder.Summary.AbilityHp", { from: baseHp, to: r.hpLevel }));
+      if (r.dmgLevel !== baseDmg) {
+        changes.push(i18n.format("NMB.Builder.Summary.AbilityDmg", { from: baseDmg, to: r.dmgLevel }));
+      }
+      if (changes.length) lines.push(i18n.format("NMB.Builder.Summary.AbilityNote", { changes: changes.join(", ") }));
     }
+    note.hidden = !lines.length;
+    note.textContent = lines.join(" ");
+
+    const badge = el.querySelector("[data-ability-count]");
+    badge.hidden = !r.abilities.length;
+    badge.textContent = r.abilities.length;
 
     this.#refreshAttacks(r);
   }
@@ -253,6 +306,20 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       warn.hidden = !attack.overshoot;
       warn.textContent = attack.overshoot ? i18n.format("NMB.Builder.Attack.Overshoot", { die: `d${attack.die}` }) : "";
     });
+  }
+
+  static #onAddCustomAbility() {
+    const form = this.#form;
+    const id = ++this.#customSeq;
+    const html = form.querySelector("[data-custom-ability-template]").innerHTML.replaceAll("__ID__", id);
+    form.querySelector("[data-custom-abilities]").insertAdjacentHTML("beforeend", html);
+    form.querySelector("[data-custom-abilities]").lastElementChild.querySelector('[data-field="name"]').focus();
+    this.#refresh();
+  }
+
+  static #onRemoveCustomAbility(event, target) {
+    target.closest(".nmb-custom-ability").remove();
+    this.#refresh();
   }
 
   static #onAddAttack() {

@@ -13,7 +13,8 @@ Open the **Actors** sidebar tab and click **Monster Builder**, or run
   separately.
 - **Minion** monsters follow the GM Guide rules: no HP, one damage die, cannot crit. Pick the die; the hint
   under it shows the GM Guide's suggested party levels.
-- Each special ability lowers HP by one table row, as the GM Guide suggests (a fuller ability list is planned).
+- Add abilities from the GM Guide's list (or your own). For each one choose a cost: one table row off HP, one off
+  damage, or free, as the GM Guide suggests.
 - Add several attacks; each is an alternative that uses the full damage per round, split by its x1 / x2 / x3 multiplier.
 - d8 uses the book's sample dice. Other dice are computed to match the table's damage per round.
 

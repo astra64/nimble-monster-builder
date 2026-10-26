@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.4.0 (unreleased, untested in Foundry)
+## 0.5.0 (unreleased, untested in Foundry)
+
+- Abilities tab: the GM Guide's 41 "Flavorful Monster Abilities" as a searchable checklist, plus custom abilities.
+  Each ability becomes a feature item on the actor. For a standard monster, choose what each one costs (`HP -1`,
+  `Damage -1` or `Free`, the default); the stat card applies the cost. Minions
+  can have abilities at no cost. Replaces the old "special abilities" counter.
+- The actor description states the defaults (speed 6, reach 1, d20 saves).
+
+## 0.4.0
 
 - Multiple attacks: add and remove attack cards (name, attacks per action x1 / x2 / x3, damage type, melee or
   ranged, notes). Each attack is an alternative balanced against the full damage per round. Minions keep a single

@@ -4,7 +4,7 @@
  * Nimble system 0.10.0), so a system update only needs fixes in this file.
  */
 import { FOLDER_NAME } from "./constants.js";
-import { TOKEN_SIZE, attackDescription, buildDescription, resolve } from "./lib/index.js";
+import { TOKEN_SIZE, abilityDescription, attackDescription, buildDescription, resolve } from "./lib/index.js";
 
 // Default reach of a ranged attack in spaces (the GMG bestiary uses Range 8 for thrown and shot attacks).
 const RANGED_DISTANCE = 8;
@@ -62,6 +62,37 @@ function attackItem({ name, formula, damageType, attackType, canCrit, descriptio
   };
 }
 
+/** A passive ability as a Nimble monster feature (subtype "feature"), with no activation. */
+function abilityItem({ name, description }) {
+  const rid = () => foundry.utils.randomID(16);
+  return {
+    _id: rid(),
+    name,
+    type: "monsterFeature",
+    img: "icons/svg/aura.svg",
+    system: {
+      macro: "",
+      identifier: "",
+      rules: [],
+      activation: {
+        acquireTargetsFromTemplate: false,
+        cost: { details: "", quantity: 1, type: "none", isReaction: false },
+        duration: { details: "", quantity: 1, type: "none" },
+        effects: [],
+        showDescription: true,
+        targets: { count: 1, restrictions: "" },
+        template: { length: 1, radius: 1, shape: "", width: 1 },
+      },
+      description,
+      subtype: "feature",
+    },
+    effects: [],
+    folder: null,
+    sort: 0,
+    flags: {},
+  };
+}
+
 async function getFolder(name) {
   return game.folders.find((f) => f.type === "Actor" && f.name === name) ?? Folder.create({ name, type: "Actor" });
 }
@@ -90,7 +121,7 @@ export async function createMonster(data) {
         hp: { max: hp, value: hp, temp: 0 },
         sizeCategory: data.size,
       },
-      description: buildDescription(r, data),
+      description: buildDescription(r),
       details: {
         creatureType: data.creatureType,
         level: r.hpLevel,
@@ -108,15 +139,20 @@ export async function createMonster(data) {
       displayBars: 0,
       bar1: { attribute: "attributes.hp" },
     },
-    items: r.attacks.map((attack) =>
-      attackItem({
-        name: `${attack.name || "Attack"}${attack.count > 1 ? ` (${attack.count}×)` : ""}`,
-        formula: attack.formula,
-        damageType: attack.damageType,
-        attackType: attack.attackType,
-        canCrit: r.canCrit,
-        description: attackDescription(attack, { minion: isMinion }),
-      }),
-    ),
+    items: [
+      ...r.attacks.map((attack) =>
+        attackItem({
+          name: `${attack.name || "Attack"}${attack.count > 1 ? ` (${attack.count}×)` : ""}`,
+          formula: attack.formula,
+          damageType: attack.damageType,
+          attackType: attack.attackType,
+          canCrit: r.canCrit,
+          description: attackDescription(attack, { minion: isMinion }),
+        }),
+      ),
+      ...r.abilities.map((ability) =>
+        abilityItem({ name: ability.name, description: abilityDescription(ability) }),
+      ),
+    ],
   });
 }

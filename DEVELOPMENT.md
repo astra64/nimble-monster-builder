@@ -51,7 +51,7 @@ actors; search for `toActorData`).
 
 ## Status
 
-- v0.4.0 (stages 0-4 of the roadmap). `npm test` passes (35 tests); all scripts pass `node --check`. The builder
+- v0.5.0 (stages 0-5 of the roadmap). `npm test` passes (46 tests); all scripts pass `node --check`. The builder
   window has been opened and reviewed in Foundry (layout, themes, attack cards, damage chips); the user's feedback
   is folded in.
 - **Still not confirmed in Foundry:** actually creating actors. Create a standard monster (several attacks), a
@@ -59,7 +59,7 @@ actors; search for `toActorData`).
   whether `isFlunky` behaves, that each attack becomes one item with the right formula, damage type and range, and
   that the sidebar button sits well in the Actors header.
 
-## UX plan (stages 3-4 built; abilities tab still to build)
+## UX plan (stages 3-5 built)
 
 Scope: standard monsters (incl. flunkies) and minions. Legendary monsters are a future feature.
 GMG text extracted with `pdftotext -layout`; relevant pages are 24-30 (Running Monsters, Fine Tuning, Monster Builder).
@@ -194,9 +194,12 @@ Do not start a stage until told. Each stage ends with something testable in Foun
    formula in `lib/stats.js` (`damageFormula`), tested against bestiary examples. Each card shows the formula, its
    average against the table's per-attack target, and a warning when one die already exceeds the target. (The
    "crit dice" idea was dropped: the crit rules are not confirmed.)
-5. **Abilities.** `abilities.js` with the GMG list (~45 names and descriptions, p.30), searchable checklist,
-   custom entry, each adds a `monsterFeature` item; per-ability cost buttons (`HP -1` / `Damage -1` / `Free`),
-   uncosted abilities flagged on the stat card. State the defaults (speed 6, reach 1, d20 saves) in the description.
+5. **Abilities.** DONE (untested in Foundry). `scripts/lib/abilities.js` holds the GMG list (41 abilities, p.30). The
+   Abilities tab has a searchable checklist with a "selected only" toggle and custom abilities (name, text). Each
+   ticked ability gets `HP -1` / `Damage -1` / `Free` buttons (Free preselected, so no choice means free); the stat
+   card applies the sum and its note says which rows moved. Every ability becomes a `monsterFeature` item (subtype
+   `feature`, no activation). Minions get abilities too, at no cost. The actor description states the defaults
+   (speed 6, reach 1, d20 saves). The old counter is gone.
 6. **Presets.** Save and load archetypes in world settings, export and import as JSON.
 7. **Settings and rebuild.** Default die, default folder; rebuild an existing actor from the table.
 8. **Publish prep.** Licensing check (Nimble third-party licence), `module.json` TODOs, README, CHANGELOG,

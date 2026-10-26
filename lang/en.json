@@ -36,15 +36,25 @@
         "Flunky": "Flunky",
         "FlunkyHint": "Cannot crit.",
         "Die": "Damage die",
-        "Abilities": "Special abilities",
         "DamageType": "Damage type",
         "Range": "Range",
         "OpenSheet": "Open sheet",
         "OpenSheetHint": "Open the new actor's sheet after creating."
       },
       "Abilities": {
-        "Placeholder": "The special ability list is coming in a later version. For now, enter how many special abilities you will add by hand; each one lowers HP by one table row, as the GM Guide suggests.",
-        "MinionNote": "Minions have no HP, so abilities cost nothing. The ability list is coming in a later version."
+        "CostHint": "For each special ability added, lower the HP or damage 1 step or treat the monster as 1 step stronger.",
+        "MinionNote": "Minions have no HP, so abilities cost nothing.",
+        "Search": "Search abilities...",
+        "SelectedOnly": "Selected only",
+        "CostLabel": "Cost",
+        "CostHp": "-1 HP lvl",
+        "CostDamage": "-1 Damage lvl",
+        "CostFree": "Free",
+        "CustomHeading": "Custom abilities",
+        "AddCustom": "Add custom ability",
+        "CustomName": "Ability name",
+        "CustomText": "What it does",
+        "RemoveCustom": "Remove ability"
       },
       "Armor": {
         "None": "None",
@@ -75,7 +85,6 @@
       },
       "DieHint": "Thematic Example: {note}.",
       "DieHintMinion": "Suggested die for party levels {levels}.",
-      "AbilityNote": "Special abilities: HP level {from} → {to}.",
       "Attack": {
         "Add": "Add attack",
         "Remove": "Remove attack",
@@ -106,6 +115,11 @@
         "necrotic": "Necrotic",
         "psychic": "Psychic",
         "radiant": "Radiant"
+      },
+      "Summary": {
+        "AbilityNote": "Special abilities: {changes}.",
+        "AbilityHp": "HP level {from} → {to}",
+        "AbilityDmg": "damage level {from} → {to}"
       }
     }
   }

@@ -18,7 +18,15 @@ export function attackDescription(attack, { minion = false } = {}) {
   return parts.join("");
 }
 
-export function buildDescription(r, data) {
+/** Feature item description for an ability. */
+export function abilityDescription(ability) {
+  const text = String(ability.text ?? "").trim();
+  return text ? `<p>${escapeHtml(text)}</p>` : "";
+}
+
+const DEFAULTS = "<p><em>Unless noted: speed 6, attacks have Reach 1, saves roll 1d20.</em></p>";
+
+export function buildDescription(r) {
   const stats = `<p><strong>Save DC:</strong> ${r.saveDC} &nbsp; <strong>CR equiv.:</strong> ${r.cr}</p>`;
 
   if (r.mode === "minion") {
@@ -28,15 +36,19 @@ export function buildDescription(r, data) {
       `cannot crit, and misses on a roll of 1. When several minions attack one target their damage is combined ` +
       `and counts as a single attack.</p>` +
       `<p><em>Optional overkill: excess damage carries over to other minions in range, using the die size as ` +
-      `durability.</em></p>`
+      `durability.</em></p>` +
+      DEFAULTS
     );
   }
 
-  const abilities = Number(data.abilities) || 0;
+  const { hp, damage } = r.abilitySteps;
+  const abilities = r.abilities.length;
+  const costs = [hp ? `${hp} off HP` : "", damage ? `${damage} off damage` : ""].filter(Boolean).join(", ");
   return (
     stats +
     `<p><em>Built from the GM Guide Monster Builder table: HP from level ${r.hpLevel}, damage from level ` +
-    `${r.dmgLevel}${abilities ? `, ${abilities} special abilit${abilities === 1 ? "y" : "ies"} accounted for` : ""}.` +
-    `${r.canCrit ? "" : " Flunky: cannot crit."}</em></p>`
+    `${r.dmgLevel}${abilities ? `; ${abilities} special abilit${abilities === 1 ? "y" : "ies"}${costs ? ` (${costs} rows)` : ""}` : ""}.` +
+    `${r.canCrit ? "" : " Flunky: cannot crit."}</em></p>` +
+    DEFAULTS
   );
 }

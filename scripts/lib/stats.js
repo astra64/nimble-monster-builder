@@ -73,17 +73,27 @@ export function partyLevelRange(die) {
 
 const DEFAULT_ATTACK = { name: "Attack", damageType: "slashing", attackType: "melee", count: 1, notes: "" };
 
-/** Standard monster: apply the "special ability" penalty (1 step per ability) and look up the table. */
-export function resolveStandard({ hpLevel, dmgLevel, armor, die, abilities, abilityTo, attacks, flunky }) {
-  let hpIdx = Number(hpLevel);
-  let dmgIdx = Number(dmgLevel);
-  const n = Number(abilities) || 0;
-  if (abilityTo === "hp") hpIdx -= n;
-  else if (abilityTo === "damage") dmgIdx -= n;
-  else {
-    hpIdx -= Math.ceil(n / 2);
-    dmgIdx -= Math.floor(n / 2);
-  }
+/** Keep abilities that have a name, with trimmed text. */
+const cleanAbilities = (abilities) =>
+  (abilities ?? [])
+    .map((a) => ({ name: String(a.name ?? "").trim(), text: String(a.text ?? "").trim(), cost: a.cost ?? null }))
+    .filter((a) => a.name);
+
+/** Table rows the abilities take off HP and damage. An ability with no cost chosen counts as free. */
+export function abilitySteps(abilities) {
+  const list = cleanAbilities(abilities);
+  const count = (cost) => list.filter((a) => a.cost === cost).length;
+  return { hp: count("hp"), damage: count("damage") };
+}
+
+/**
+ * Standard monster: each special ability lowers HP or damage by one table row, as the GM chose for it
+ * (`cost`: "hp", "damage" or "free"), then look up the table.
+ */
+export function resolveStandard({ hpLevel, dmgLevel, armor, die, abilities, attacks, flunky }) {
+  const steps = abilitySteps(abilities);
+  const hpIdx = Number(hpLevel) - steps.hp;
+  const dmgIdx = Number(dmgLevel) - steps.damage;
   const hpRow = ROWS[clamp(hpIdx)];
   const dmgRow = ROWS[clamp(dmgIdx)];
   const list = attacks?.length ? attacks : [DEFAULT_ATTACK];
@@ -94,6 +104,8 @@ export function resolveStandard({ hpLevel, dmgLevel, armor, die, abilities, abil
     dmgLevel: dmgRow[0],
     dmgPerRound: dmgRow[4],
     attacks: list.map((a) => ({ ...DEFAULT_ATTACK, ...a, ...damageFormula(dmgRow, a.die ?? die, a.count) })),
+    abilities: cleanAbilities(abilities),
+    abilitySteps: steps,
     saveDC: dmgRow[7],
     cr: hpRow[8],
     canCrit: !flunky,
@@ -105,7 +117,7 @@ export function resolveStandard({ hpLevel, dmgLevel, armor, die, abilities, abil
  * Minion (GMG p.24): no HP, one damage die, cannot crit, misses on a 1. Level only sets the displayed level,
  * save DC and CR equivalent. A minion has a single attack.
  */
-export function resolveMinion({ minionLevel, die, attacks }) {
+export function resolveMinion({ minionLevel, die, attacks, abilities }) {
   const row = ROWS[clamp(Number(minionLevel))];
   const minionDie = Number(attacks?.[0]?.die ?? die);
   const formula = `1d${minionDie}`;
@@ -128,6 +140,9 @@ export function resolveMinion({ minionLevel, die, attacks }) {
         overshoot: false,
       },
     ],
+    // Minions have no HP, so abilities are added but cost nothing.
+    abilities: cleanAbilities(abilities),
+    abilitySteps: { hp: 0, damage: 0 },
     saveDC: row[7],
     cr: row[8],
     canCrit: false,
