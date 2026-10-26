@@ -1,0 +1,69 @@
+{
+  "NMB": {
+    "Builder": {
+      "Title": "Nimble Monster Builder",
+      "OpenButton": "Monster Builder",
+      "Modes": {
+        "Standard": "Standard",
+        "Minion": "Minion"
+      },
+      "Chips": {
+        "HP": "HP",
+        "Damage": "Damage",
+        "SaveDC": "Save DC",
+        "CR": "CR"
+      },
+      "Sections": {
+        "Monster": "Monster",
+        "Stats": "Stats (table lookup)",
+        "Attack": "Attack"
+      },
+      "Fields": {
+        "Name": "Name",
+        "CreatureType": "Creature type",
+        "CreatureTypePlaceholder": "e.g. Humanoid",
+        "Size": "Size",
+        "HpLevel": "HP from level",
+        "DamageLevel": "Damage from level",
+        "Armor": "Armor",
+        "Flunky": "Flunky",
+        "FlunkyHint": "Cannot crit.",
+        "Die": "Damage die",
+        "Abilities": "Special abilities",
+        "AbilityTo": "Ability cost lowers",
+        "MinionLevel": "Minion level",
+        "PartyLevel": "Party level",
+        "PartyLevelHint": "Optional. Suggests a die size.",
+        "AttackName": "Attack name",
+        "TwoAttacks": "Two attacks (2×)",
+        "DamageType": "Damage type",
+        "Range": "Range"
+      },
+      "Armor": {
+        "None": "None",
+        "Medium": "Medium",
+        "Heavy": "Heavy"
+      },
+      "AbilityTo": {
+        "HP": "HP (1 step each)",
+        "Damage": "Damage (1 step each)",
+        "Split": "Alternate HP / damage"
+      },
+      "Range": {
+        "Melee": "Melee",
+        "Ranged": "Ranged"
+      },
+      "Level": "Level {level}",
+      "Summary": {
+        "Standard": "HP from level {hp}, damage from level {dmg} (~{dpr}/round).",
+        "Adjusted": "Adjusted for special abilities.",
+        "Minion": "Minion, level {level}. No HP: any damage kills it. Cannot crit, misses on a 1.",
+        "SuggestedDie": "Suggested for party level {party}: d{die}."
+      },
+      "OpenSheet": "Open sheet",
+      "Create": "Create Monster",
+      "Created": "Created {name}.",
+      "DefaultName": "New Monster"
+    }
+  }
+}

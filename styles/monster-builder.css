@@ -1,0 +1,169 @@
+/* Nimble Monster Builder styles. House style shared with the other astra64 modules. */
+body {
+  --nmb-accent: #7a9928;
+}
+
+.nmb-app .window-content {
+  padding: 0;
+  overflow: hidden;
+}
+
+.nmb-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem 0;
+  background: #ede5d9;
+}
+
+.nmb-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.nmb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.nmb-chip {
+  padding: 0.1rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--color-border-light-primary) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-cool-2) 48%, transparent);
+  font-size: var(--font-size-12, 12px);
+}
+
+/* Mode tabs */
+.nmb-tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.nmb-tab {
+  padding: 0.3rem 0.8rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  font-size: var(--font-size-12, 12px);
+}
+
+.nmb-tab:hover {
+  background: color-mix(in srgb, var(--color-cool-3) 40%, transparent);
+}
+
+.nmb-tab.active {
+  border-color: var(--color-border-light-primary);
+  border-bottom: 2px solid var(--nmb-accent);
+  background: color-mix(in srgb, var(--color-cool-2) 40%, #d6d2c8 75%);
+  font-weight: 600;
+}
+
+/* Panels */
+.nmb-panels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.nmb-heading {
+  margin: 0.4rem 0 0.1rem;
+  padding-bottom: 0.15rem;
+  border-bottom: 1px solid var(--color-border-light-primary);
+  font-size: var(--font-size-14, 14px);
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.nmb-heading:first-child {
+  margin-top: 0;
+}
+
+.nmb-row {
+  display: grid;
+  grid-template-columns: 9.5em minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.nmb-row label {
+  font-size: var(--font-size-12, 12px);
+}
+
+.nmb-row input[type="text"],
+.nmb-row input[type="number"],
+.nmb-row select {
+  width: 100%;
+  min-width: 0;
+}
+
+.nmb-check {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.nmb-check input {
+  margin: 0;
+}
+
+/* Mode-dependent fields: shown only for their mode. */
+.nmb-root[data-mode="standard"] [data-for="minion"],
+.nmb-root[data-mode="minion"] [data-for="standard"] {
+  display: none;
+}
+
+/* Footer */
+.nmb-footer {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 -0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-top: 1px solid var(--color-border-light-primary);
+  background: #d6d2c8;
+}
+
+.nmb-summary {
+  flex: 1;
+  font-size: var(--font-size-11, 11px);
+  opacity: 0.85;
+}
+
+.nmb-footer .nmb-check {
+  font-size: var(--font-size-11, 11px);
+}
+
+.nmb-create {
+  width: auto;
+  min-height: 28px;
+  height: 28px;
+  padding: 0.16rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--nmb-accent) 45%, var(--color-border-light-primary));
+  background: color-mix(in srgb, var(--nmb-accent) 28%, var(--color-cool-1) 72%);
+  color: var(--color-text-dark-primary);
+  font-weight: 600;
+  line-height: 1.1;
+  text-shadow: none;
+}
+
+.nmb-create:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sidebar button */
+.nmb-open {
+  width: auto;
+}
