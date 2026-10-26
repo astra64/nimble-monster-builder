@@ -5,7 +5,7 @@
   "version": "0.5.1",
   "authors": [
     {
-      "name": "TODO: your name"
+      "name": "astra64"
     }
   ],
   "compatibility": {
@@ -36,8 +36,8 @@
       "path": "lang/en.json"
     }
   ],
-  "url": "TODO: project url",
-  "manifest": "TODO: raw url of module.json",
-  "download": "TODO: url of release zip",
-  "license": "TODO: see README"
+  "url": "https://github.com/astra64/nimble-monster-builder",
+  "manifest": "https://raw.githubusercontent.com/astra64/nimble-monster-builder/main/module.json",
+  "download": "https://github.com/astra64/nimble-monster-builder/archive/refs/heads/main.zip",
+  "license": "https://github.com/astra64/nimble-monster-builder/blob/main/LICENSE"
 }
