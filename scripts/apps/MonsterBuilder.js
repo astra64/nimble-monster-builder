@@ -5,7 +5,7 @@ import { ABILITIES, DAMAGE_TYPE_GROUPS, DICE, MAX_ATTACK_COUNT, ROWS, SIZES, par
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-const TABS = ["stats", "attacks", "abilities", "misc"];
+const TABS = ["stats", "attacks", "abilities"];
 
 const MODE_LABELS = {
   standard: "NMB.Builder.Modes.Standard",
@@ -146,7 +146,6 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     data.abilities = this.#readAbilities();
     data.attacks = this.#readAttacks();
     data.flunky = form.elements.flunky.checked;
-    data.openSheet = form.elements.openSheet.checked;
     return data;
   }
 
@@ -378,7 +377,7 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     try {
       const actor = await createMonster(data);
       ui.notifications.info(game.i18n.format("NMB.Builder.Created", { name: actor.name }));
-      if (data.openSheet) actor.sheet.render(true);
+      actor.sheet.render(true);
       if (!event.shiftKey) await this.close();
     } finally {
       target.disabled = false;

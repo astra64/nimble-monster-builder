@@ -5,10 +5,15 @@
         <input type="text" class="nmb-name" name="name" value="{{defaultName}}" aria-label="{{localize 'NMB.Builder.Fields.Name'}}">
         <input type="text" class="nmb-type" name="creatureType" placeholder="{{localize 'NMB.Builder.Fields.CreatureTypePlaceholder'}}" aria-label="{{localize 'NMB.Builder.Fields.CreatureType'}}">
       </div>
-      <div class="nmb-seg-group" role="group" aria-label="{{localize 'NMB.Builder.Fields.Mode'}}">
-        {{#each modes}}
-        <button type="button" class="nmb-seg-btn {{#if active}}active{{/if}}" data-action="switchMode" data-mode="{{id}}" aria-pressed="{{active}}">{{localize label}}</button>
-        {{/each}}
+      <div class="nmb-title-side">
+        <div class="nmb-seg-group" role="group" aria-label="{{localize 'NMB.Builder.Fields.Mode'}}">
+          {{#each modes}}
+          <button type="button" class="nmb-seg-btn {{#if active}}active{{/if}}" data-action="switchMode" data-mode="{{id}}" aria-pressed="{{active}}">{{localize label}}</button>
+          {{/each}}
+        </div>
+        <label class="nmb-check nmb-flunky" data-for="standard" data-tooltip="{{localize 'NMB.Builder.Fields.FlunkyHint'}}">
+          <input type="checkbox" name="flunky"> {{localize "NMB.Builder.Fields.Flunky"}}
+        </label>
       </div>
     </div>
 
@@ -193,18 +198,6 @@
         </div>
         </div>
       </template>
-    </section>
-
-    {{!-- Misc --}}
-    <section class="nmb-panel {{#if tabs.3.active}}active{{/if}}" data-tab="misc">
-      <div class="nmb-row" data-for="standard">
-        <label for="nmb-flunky">{{localize "NMB.Builder.Fields.Flunky"}}</label>
-        <label class="nmb-check"><input id="nmb-flunky" type="checkbox" name="flunky"> {{localize "NMB.Builder.Fields.FlunkyHint"}}</label>
-      </div>
-      <div class="nmb-row">
-        <label for="nmb-openSheet">{{localize "NMB.Builder.Fields.OpenSheet"}}</label>
-        <label class="nmb-check"><input id="nmb-openSheet" type="checkbox" name="openSheet" checked> {{localize "NMB.Builder.Fields.OpenSheetHint"}}</label>
-      </div>
     </section>
   </div>
 

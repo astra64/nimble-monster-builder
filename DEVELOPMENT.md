@@ -74,7 +74,7 @@ Feedback on v0.2.0 and decisions:
   example "Special abilities: HP level 1 -> 1/3"); otherwise it is hidden. Footer holds only Create.
   The Damage stat shows the damage per round from the table (a minion shows its die), not an attack formula,
   because attacks are alternatives that each draw on that budget; the formulas live on the Attacks tab.
-- **Tabs by category:** Stats | Attacks | Abilities | Misc.
+- **Tabs by category:** Stats | Attacks | Abilities.
 - **Stats tab:** one **Level** picker with a link / unlink button; unlinked shows separate HP level and damage
   level pickers. (This replaces the Balanced / Glass cannon / Tank role idea.) Armor as radios with the GMG's
   60 / 30 / 10 hint in grey. Size and creature type.
@@ -97,7 +97,8 @@ Feedback on v0.2.0 and decisions:
   ticked ability row has its own buttons `HP -1` / `Damage -1` / `Free`; the stat card applies the sum. No default
   cost is preselected, and the stat card flags abilities that have no choice yet. Minions: abilities are added as
   feature items and cost nothing (no HP), so the buttons are hidden.
-- **Misc tab:** Flunky toggle, "open sheet after creating" (default on), later folder, speed, free description.
+- **Flunky** toggle sits under the Standard / Minion toggle in the header (standard monsters only). The sheet always
+  opens after creating, as Foundry does. There is no Misc tab.
 - **Create** closes the window. Optional: Shift-click keeps it open for batches (tooltip).
 
 Possible later: encounter budget helper (total monster level vs party total level: <50% easy, ~75% medium,
@@ -185,9 +186,9 @@ Do not start a stage until told. Each stage ends with something testable in Foun
    1/1), single die, no crit, level default 1/4, flunky toggle.
 2. **ApplicationV2 shell.** DONE (v0.2.0, first look only; see the UX plan for the rework).
 3. **UI rework (house style, dark mode).** DONE (untested in Foundry). Theme-safe CSS; header with name, mode toggle and the stat card; tabs
-   Stats / Attacks / Abilities / Misc (Abilities holds a temporary counter that lowers HP one row per ability; the cost-target select was removed); linked level with unlink; armor
+   Stats / Attacks / Abilities (Abilities holds a temporary counter that lowers HP one row per ability; the cost-target select was removed); linked level with unlink; armor
    radios; die radio row (die value only) with grey suggestion text under it (party levels too in Minion mode,
-   replacing the party-level field); Misc tab (flunky, open sheet); Create closes the window. No
+   replacing the party-level field); flunky toggle in the header; Create closes the window. No
    new rules. Uses the existing single attack.
 4. **Attacks and die size.** DONE (untested in Foundry). Attack list with add / remove, collapsible cards, damage type
    chips, melee / ranged (ranged distance 8), x1 / x2 / x3, notes, generated descriptions with the formula. Dice-share
@@ -200,11 +201,12 @@ Do not start a stage until told. Each stage ends with something testable in Foun
    card applies the sum and its note says which rows moved. Every ability becomes a `monsterFeature` item (subtype
    `feature`, no activation). Minions get abilities too, at no cost. The actor description states the defaults
    (speed 6, reach 1, d20 saves). The old counter is gone.
-6. **Presets.** Save and load archetypes in world settings, export and import as JSON.
-7. **Settings and rebuild.** Default die, default folder; rebuild an existing actor from the table.
-8. **Publish prep.** Licensing check (Nimble third-party licence), `module.json` TODOs, README, CHANGELOG,
+7. **Publish prep.** Licensing check (Nimble third-party licence), `module.json` TODOs, README, CHANGELOG,
    manifest URL, id availability.
-9. **Future.** Legendary monsters; encounter budget helper.
+8. **Future.** Legendary monsters; encounter budget helper.
+9. **Future: presets.** Save and load archetypes (a named set of builder choices: level, armor, die, attacks,
+   abilities) in world settings, with export and import as JSON. Moved out of the main roadmap; the builder state is
+   already read from the form in one place (`#read` in `MonsterBuilder.js`), which a preset would store and restore.
 10. **Future: D&D 5e stat block import.** Paste a 5e stat block (plain text) and get an approximately converted
     Nimble monster, pre-filled into the builder for the GM to review before creating. Rough shape, to be researched
     when it is scheduled:

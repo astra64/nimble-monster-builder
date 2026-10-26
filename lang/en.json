@@ -10,8 +10,7 @@
       "Tabs": {
         "Stats": "Stats",
         "Attacks": "Attacks",
-        "Abilities": "Abilities",
-        "Misc": "Misc"
+        "Abilities": "Abilities"
       },
       "Chips": {
         "Level": "Level",
@@ -34,12 +33,10 @@
         "Armor": "Armor",
         "ArmorHint": "The GM Guide suggests roughly 60% unarmored, 30% medium and 10% heavy armor per session.",
         "Flunky": "Flunky",
-        "FlunkyHint": "Cannot crit.",
+        "FlunkyHint": "Flunkies cannot crit.",
         "Die": "Damage die",
         "DamageType": "Damage type",
-        "Range": "Range",
-        "OpenSheet": "Open sheet",
-        "OpenSheetHint": "Open the new actor's sheet after creating."
+        "Range": "Range"
       },
       "Abilities": {
         "CostHint": "For each special ability added, lower the HP or damage 1 step or treat the monster as 1 step stronger.",

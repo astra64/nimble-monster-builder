@@ -9,7 +9,7 @@ Open the **Actors** sidebar tab and click **Monster Builder**, or run
 `game.modules.get("nimble-monster-builder").api.open()` from a macro.
 
 - **Standard** monsters: HP and damage can come from different levels, so you can make glass cannons and tanks.
-  Tick **Flunky** (Misc tab) for a monster that cannot crit. Use the link button to set HP and damage levels
+  Tick **Flunky** (under the Standard / Minion toggle) for a monster that cannot crit. Use the link button to set HP and damage levels
   separately.
 - **Minion** monsters follow the GM Guide rules: no HP, one damage die, cannot crit. Pick the die; the hint
   under it shows the GM Guide's suggested party levels.

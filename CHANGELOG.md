@@ -1,6 +1,11 @@
 # Changelog
 
-## 0.5.0 (unreleased, untested in Foundry)
+## 0.5.1 (unreleased, untested in Foundry)
+
+- Removed the Misc tab. The Flunky checkbox now sits under the Standard / Minion toggle, and the new actor's sheet
+  always opens after creating.
+
+## 0.5.0
 
 - Abilities tab: the GM Guide's 41 "Flavorful Monster Abilities" as a searchable checklist, plus custom abilities.
   Each ability becomes a feature item on the actor. For a standard monster, choose what each one costs (`HP -1`,
