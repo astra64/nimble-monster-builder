@@ -1,7 +1,7 @@
 /** The builder window (ApplicationV2). */
 import { MODES, MODULE_ID } from "../constants.js";
 import { createMonster } from "../builder.js";
-import { DAMAGE_TYPES, DICE, ROWS, SIZES, partyLevelRange, resolve } from "../lib/index.js";
+import { DAMAGE_TYPE_GROUPS, DICE, MAX_ATTACK_COUNT, ROWS, SIZES, partyLevelRange, resolve } from "../lib/index.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -19,7 +19,17 @@ const ARMORS = [
 ];
 
 // Table index each mode starts at: level 1 for standard monsters, level 1/4 for minions.
+const DEFAULT_DAMAGE_TYPE = "slashing";
+const DEFAULT_DIE = 8;
+
 const DEFAULT_LEVEL = { standard: 3, minion: 0 };
+
+// A group of up to this many chips sits on one line; bigger groups are split into even rows.
+const SINGLE_ROW_MAX = 4;
+const MAX_CHIP_COLUMNS = 3;
+
+/** Columns for a group that needs several rows, at most three, so no row is left with a lone chip (5 chips: 3+2). */
+const balancedColumns = (n) => Math.ceil(n / Math.ceil(n / MAX_CHIP_COLUMNS));
 
 const capitalize = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
@@ -34,6 +44,8 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       switchMode: MonsterBuilder.#onSwitchMode,
       switchTab: MonsterBuilder.#onSwitchTab,
       toggleLink: MonsterBuilder.#onToggleLink,
+      addAttack: MonsterBuilder.#onAddAttack,
+      removeAttack: MonsterBuilder.#onRemoveAttack,
       create: MonsterBuilder.#onCreate,
     },
   };
@@ -47,6 +59,8 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   linked = true;
   /** Level (table index) remembered per mode while the GM switches between them. */
   levels = { ...DEFAULT_LEVEL };
+  /** Counter that makes each attack card's radio group names unique. */
+  #attackSeq = 0;
 
   /** Open the builder, or bring the existing window forward. */
   static open() {
@@ -72,8 +86,19 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       })),
       sizes: SIZES.map((s) => ({ value: s, label: s, selected: s === "medium" })),
       armors: ARMORS.map((a) => ({ ...a, checked: a.value === "none" })),
-      dice: DICE.map((die) => ({ value: die, label: `d${die}`, checked: die === 8 })),
-      damageTypes: DAMAGE_TYPES,
+      dice: DICE.map((die) => ({ value: die, label: `d${die}`, checked: die === DEFAULT_DIE })),
+      counts: Array.from({ length: MAX_ATTACK_COUNT }, (_, i) => i + 1),
+      damageGroups: DAMAGE_TYPE_GROUPS.map((group) => ({
+        label: `NMB.Builder.DamageGroups.${group.id}`,
+        singleRow: group.types.length <= SINGLE_ROW_MAX,
+        cols: balancedColumns(group.types.length),
+        types: group.types.map((t) => ({
+          id: t.id,
+          icon: t.icon,
+          label: `NMB.Builder.DamageTypes.${t.id}`,
+          checked: t.id === DEFAULT_DAMAGE_TYPE,
+        })),
+      })),
     };
   }
 
@@ -82,8 +107,14 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     // Enter inside a text field would otherwise submit (and reload) the page.
     form.addEventListener("submit", (event) => event.preventDefault());
     form.addEventListener("input", () => this.#refresh());
-    form.addEventListener("change", () => this.#refresh());
+    form.addEventListener("change", (event) => {
+      if (event.target.matches('[data-field="damageType"]')) {
+        this.#applyAutoName(event.target.closest(".nmb-attack"), event.target.value);
+      }
+      this.#refresh();
+    });
     this.#syncLinked();
+    if (!form.querySelector(".nmb-attack")) this.#appendAttack();
     this.#refresh();
   }
 
@@ -101,10 +132,61 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     data.dmgLevel = separate ? data.dmgLevel : data.level;
     data.minionLevel = data.level;
     data.abilityTo = "hp"; // until the abilities tab lets each ability choose its cost
-    data.twoAttacks = form.elements.twoAttacks.checked;
+    data.attacks = this.#readAttacks();
     data.flunky = form.elements.flunky.checked;
     data.openSheet = form.elements.openSheet.checked;
     return data;
+  }
+
+  get #cards() {
+    return [...this.#form.querySelectorAll(".nmb-attack")];
+  }
+
+  /** The attack cards as attack objects. A minion has a single attack, so only the first card counts. */
+  #readAttacks() {
+    const attacks = this.#cards.map((card) => {
+      const field = (name) => card.querySelector(`[data-field="${name}"]`);
+      const checked = (name) => card.querySelector(`[data-field="${name}"]:checked`)?.value;
+      return {
+        name: field("name").value.trim() || "Attack",
+        die: Number(checked("die")) || DEFAULT_DIE,
+        count: Number(checked("count")) || 1,
+        damageType: checked("damageType") ?? DEFAULT_DAMAGE_TYPE,
+        attackType: checked("attackType") ?? "melee",
+        notes: field("notes").value,
+      };
+    });
+    return this.mode === "minion" ? attacks.slice(0, 1) : attacks;
+  }
+
+  /** Add an attack card from the template. Radio group names get a unique id so cards do not share a group. */
+  #appendAttack() {
+    const form = this.#form;
+    const id = ++this.#attackSeq;
+    const html = form.querySelector("[data-attack-template]").innerHTML.replaceAll("__ID__", id);
+    form.querySelector("[data-attacks]").insertAdjacentHTML("beforeend", html);
+    const cards = this.#cards;
+    const card = cards.at(-1);
+    this.#applyAutoName(card, DEFAULT_DAMAGE_TYPE);
+    if (id > 1) {
+      // A new attack starts with the die of the one before it.
+      const die = cards.at(-2).querySelector('[data-field="die"]:checked')?.value;
+      const radio = card.querySelector(`[data-field="die"][value="${die}"]`);
+      if (radio) radio.checked = true;
+    }
+  }
+
+  /**
+   * Name an attack after its damage type ("Fire Attack") while the GM has not renamed it. The last generated
+   * name is remembered on the card; the name only follows the damage type while it still matches that.
+   */
+  #applyAutoName(card, type) {
+    const input = card.querySelector('[data-field="name"]');
+    const next = game.i18n.format("NMB.Builder.Attack.DefaultName", {
+      type: game.i18n.localize(`NMB.Builder.DamageTypes.${type}`),
+    });
+    if (!input.value || input.value === card.dataset.autoName) input.value = next;
+    card.dataset.autoName = next;
   }
 
   /** Show the single level picker, or the separate HP and damage pickers, and update the link button. */
@@ -129,7 +211,7 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     set("hp", r.hp ?? "-");
     set("armor", minion ? "-" : i18n.localize(`NMB.Builder.ArmorLetter.${data.armor}`));
     // Standard: damage per round. Attacks are alternatives that each use this budget (see stage 4).
-    set("damage", minion ? r.formula : r.dmgPerRound);
+    set("damage", minion ? r.attacks[0].avg : r.dmgPerRound);
     set("saveDC", r.saveDC);
     set("cr", r.cr);
 
@@ -141,12 +223,48 @@ export class MonsterBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       note.textContent = i18n.format("NMB.Builder.AbilityNote", { from: baseHp, to: r.hpLevel });
     }
 
-    const die = `d${data.die}`;
-    const dieNote = i18n.localize(`NMB.Builder.DieNote.${die}`);
-    const levels = partyLevelRange(data.die);
-    el.querySelector("[data-die-hint]").textContent = minion
-      ? i18n.format("NMB.Builder.DieHintMinion", { levels, note: dieNote })
-      : i18n.format("NMB.Builder.DieHint", { note: dieNote });
+    this.#refreshAttacks(r);
+  }
+
+  /** Update each attack card's summary, formula line and overshoot warning from the resolved attacks. */
+  #refreshAttacks(r) {
+    const i18n = game.i18n;
+    const cards = this.#cards;
+    this.element.querySelector("[data-attacks]").toggleAttribute("data-single", cards.length === 1);
+    cards.forEach((card, i) => {
+      const attack = r.attacks[i];
+      if (!attack) return; // a minion only resolves its first attack
+      const avg = Number.isInteger(attack.avg) ? attack.avg : attack.avg.toFixed(1);
+      card.querySelector("[data-attack-title]").textContent = attack.name;
+      card.querySelector("[data-attack-sub]").textContent = i18n.format("NMB.Builder.Attack.Sub", {
+        count: attack.count > 1 ? `${attack.count}× ` : "",
+        formula: attack.formula,
+        avg,
+        type: i18n.localize(`NMB.Builder.DamageTypes.${attack.damageType}`),
+      });
+
+      // The GMG's thematic note for this die, worded as a suggestion. Minions also show suggested party levels.
+      const note = i18n.localize(`NMB.Builder.DieNote.d${attack.die}`);
+      card.querySelector("[data-die-hint]").textContent =
+        r.mode === "minion"
+          ? i18n.format("NMB.Builder.DieHintMinion", { levels: partyLevelRange(attack.die), note })
+          : i18n.format("NMB.Builder.DieHint", { note });
+      const warn = card.querySelector("[data-attack-warn]");
+      warn.hidden = !attack.overshoot;
+      warn.textContent = attack.overshoot ? i18n.format("NMB.Builder.Attack.Overshoot", { die: `d${attack.die}` }) : "";
+    });
+  }
+
+  static #onAddAttack() {
+    this.#appendAttack();
+    this.#refresh();
+  }
+
+  static #onRemoveAttack(event, target) {
+    event.preventDefault(); // the button sits inside the card's <summary>; do not also toggle the card
+    if (this.#cards.length < 2) return;
+    target.closest(".nmb-attack").remove();
+    this.#refresh();
   }
 
   static #onSwitchMode(event, target) {

@@ -4,9 +4,12 @@
  * Nimble system 0.10.0), so a system update only needs fixes in this file.
  */
 import { FOLDER_NAME } from "./constants.js";
-import { TOKEN_SIZE, buildDescription, resolve } from "./lib/index.js";
+import { TOKEN_SIZE, attackDescription, buildDescription, resolve } from "./lib/index.js";
 
-function attackItem({ name, formula, damageType, attackType, canCrit, notes }) {
+// Default reach of a ranged attack in spaces (the GMG bestiary uses Range 8 for thrown and shot attacks).
+const RANGED_DISTANCE = 8;
+
+function attackItem({ name, formula, damageType, attackType, canCrit, description }) {
   const rid = () => foundry.utils.randomID(16);
   const dmgId = rid();
   return {
@@ -44,11 +47,11 @@ function attackItem({ name, formula, damageType, attackType, canCrit, notes }) {
           count: 1,
           restrictions: "",
           attackType: attackType === "range" ? "range" : "",
-          distance: attackType === "range" ? 6 : 1,
+          distance: attackType === "range" ? RANGED_DISTANCE : 1,
         },
         template: { length: 1, radius: 1, shape: "", width: 1 },
       },
-      description: notes ? `<p>${notes}</p>` : "",
+      description,
       subtype: "action",
       parentItemId: "",
     },
@@ -105,21 +108,15 @@ export async function createMonster(data) {
       displayBars: 0,
       bar1: { attribute: "attributes.hp" },
     },
-    items: [
+    items: r.attacks.map((attack) =>
       attackItem({
-        name: `${data.attackName || "Attack"}${r.twice ? " (2×)" : ""}`,
-        formula: r.formula,
-        damageType: data.damageType,
-        attackType: data.attackType,
+        name: `${attack.name || "Attack"}${attack.count > 1 ? ` (${attack.count}×)` : ""}`,
+        formula: attack.formula,
+        damageType: attack.damageType,
+        attackType: attack.attackType,
         canCrit: r.canCrit,
-        notes: [
-          isMinion ? "Follows minion rules." : "",
-          r.twice ? "Make two attacks, each dealing this damage." : "",
-          r.alt ? `${r.alt}.` : "",
-        ]
-          .filter(Boolean)
-          .join(" "),
+        description: attackDescription(attack, { minion: isMinion }),
       }),
-    ],
+    ),
   });
 }

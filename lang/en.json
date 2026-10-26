@@ -17,7 +17,7 @@
         "Level": "Level",
         "HP": "HP",
         "Armor": "Armor",
-        "Damage": "Damage",
+        "Damage": "Avg Dmg",
         "SaveDC": "Save DC",
         "CR": "CR Equiv."
       },
@@ -28,7 +28,7 @@
         "CreatureTypePlaceholder": "e.g. Humanoid",
         "Size": "Size",
         "Level": "Level",
-        "LinkHint": "Linked: HP and damage use the same level. Click to set them separately (glass cannon, tank).",
+        "LinkHint": "Linked: HP and damage use the same level.",
         "HpLevel": "HP from level",
         "DamageLevel": "Damage from level",
         "Armor": "Armor",
@@ -37,8 +37,6 @@
         "FlunkyHint": "Cannot crit.",
         "Die": "Damage die",
         "Abilities": "Special abilities",
-        "AttackName": "Attack name",
-        "TwoAttacks": "Two attacks (2×)",
         "DamageType": "Damage type",
         "Range": "Range",
         "OpenSheet": "Open sheet",
@@ -76,8 +74,39 @@
         "d20": "massive damage"
       },
       "DieHint": "Thematic Example: {note}.",
-      "DieHintMinion": "The GM Guide suggests this die for party levels {levels}.",
-      "AbilityNote": "Special abilities: HP level {from} → {to}."
+      "DieHintMinion": "Suggested die for party levels {levels}.",
+      "AbilityNote": "Special abilities: HP level {from} → {to}.",
+      "Attack": {
+        "Add": "Add attack",
+        "Remove": "Remove attack",
+        "Name": "Name",
+        "Count": "Attacks per action",
+        "Notes": "Notes",
+        "NotesPlaceholder": "e.g. On crit: Prone",
+        "Overshoot": "One {die} already averages more than the table's damage for this row. Pick a smaller die or a higher level.",
+        "DefaultName": "{type} Attack",
+        "NamePlaceholder": "Attack",
+        "Sub": "{count}{formula} · {type} · avg {avg}"
+      },
+      "DamageGroups": {
+        "physical": "Physical",
+        "elemental": "Elemental",
+        "other": "Other"
+      },
+      "DamageTypes": {
+        "bludgeoning": "Bludgeoning",
+        "piercing": "Piercing",
+        "slashing": "Slashing",
+        "acid": "Acid",
+        "cold": "Cold",
+        "fire": "Fire",
+        "lightning": "Lightning",
+        "poison": "Poison",
+        "force": "Force",
+        "necrotic": "Necrotic",
+        "psychic": "Psychic",
+        "radiant": "Radiant"
+      }
     }
   }
 }

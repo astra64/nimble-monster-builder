@@ -2,7 +2,7 @@
   "id": "nimble-monster-builder",
   "title": "Nimble Quick Monster Builder",
   "description": "Build Nimble v2 monsters in seconds from the GM Guide Monster Builder table: pick levels, armor and damage die, and get a ready-to-use actor.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "authors": [
     {
       "name": "TODO: your name"

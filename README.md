@@ -9,10 +9,12 @@ Open the **Actors** sidebar tab and click **Monster Builder**, or run
 `game.modules.get("nimble-monster-builder").api.open()` from a macro.
 
 - **Standard** monsters: HP and damage can come from different levels, so you can make glass cannons and tanks.
-  Tick **Flunky** for a monster that cannot crit.
-- **Minion** monsters follow the GM Guide rules: no HP, one damage die, cannot crit. Enter the party level to get
-  the suggested die size.
-- Each special ability lowers HP or damage by one table row, as the GM Guide suggests.
+  Tick **Flunky** (Misc tab) for a monster that cannot crit. Use the link button to set HP and damage levels
+  separately.
+- **Minion** monsters follow the GM Guide rules: no HP, one damage die, cannot crit. Pick the die; the hint
+  under it shows the GM Guide's suggested party levels.
+- Each special ability lowers HP by one table row, as the GM Guide suggests (a fuller ability list is planned).
+- Add several attacks; each is an alternative that uses the full damage per round, split by its x1 / x2 / x3 multiplier.
 - d8 uses the book's sample dice. Other dice are computed to match the table's damage per round.
 
 ## Requirements

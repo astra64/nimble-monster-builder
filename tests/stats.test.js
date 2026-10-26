@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   ARMOR_COL,
+  DICE,
   ROWS,
+  attackDescription,
   averageOf,
   buildDescription,
+  escapeHtml,
   damageFormula,
   minionDieForPartyLevel,
   partyLevelRange,
@@ -44,19 +47,45 @@ describe("averageOf", () => {
 
 describe("damageFormula", () => {
   it("uses the book's sample dice for d8", () => {
-    expect(damageFormula(ROWS[3], 8).formula).toBe("2d8+2");
-    expect(damageFormula(ROWS[3], 8, true)).toMatchObject({ formula: "1d8+1", twice: true });
+    expect(damageFormula(ROWS[3], 8)).toMatchObject({ formula: "2d8+2", source: "book", count: 1 });
+    expect(damageFormula(ROWS[3], 8, 2)).toMatchObject({ formula: "1d8+1", source: "book", count: 2 });
   });
-  it("falls back to a single attack when a row has no (2×) form", () => {
-    expect(damageFormula(ROWS[0], 8, true)).toMatchObject({ formula: "1d4+1", twice: false });
+  it("computes d8 where the book has no sample dice", () => {
+    expect(damageFormula(ROWS[0], 8, 2).source).toBe("computed");
+    expect(damageFormula(ROWS[5], 8, 3).source).toBe("computed");
   });
-  // Stage 3 replaces this formula; until then a single die can overshoot a very small target.
-  it("keeps the average near the table for other dice unless one die already exceeds it", () => {
-    for (const die of [4, 6, 10, 12, 20]) {
-      for (const row of ROWS.filter((r) => (die + 1) / 2 <= r[4])) {
-        const { formula } = damageFormula(row, die);
-        expect(Math.abs(averageOf(formula) - row[4])).toBeLessThanOrEqual(1.5);
+  it("matches bestiary examples", () => {
+    expect(damageFormula(ROWS[3], 4).formula).toBe("1d4+8"); // Ghoul, level 1
+    expect(damageFormula(ROWS[3], 6, 2).formula).toBe("1d6+2"); // Gray Ooze, level 1 (2×)
+    expect(damageFormula(ROWS[3], 10, 2).formula).toBe("1d10"); // Gnoll, level 1 (2×)
+    expect(damageFormula(ROWS[6], 8, 3).formula).toBe("1d8+1"); // Bandit Captain, level 4 (3×)
+  });
+  it("clamps the attack count to 1-3", () => {
+    expect(damageFormula(ROWS[3], 6, 0).count).toBe(1);
+    expect(damageFormula(ROWS[3], 6, 9).count).toBe(3);
+    expect(damageFormula(ROWS[3], 6, "2").count).toBe(2);
+  });
+  it("lands within half a point of the target unless one die already exceeds it", () => {
+    for (const die of DICE) {
+      for (const row of ROWS) {
+        for (const count of [1, 2, 3]) {
+          const r = damageFormula(row, die, count);
+          if (r.source === "book") continue;
+          expect(r.avg).toBeGreaterThanOrEqual(r.target - 0.5);
+          if (!r.overshoot) expect(r.avg).toBeLessThanOrEqual(r.target + 1.5);
+          if (/\+\d/.test(r.formula)) expect(Math.abs(r.avg - r.target)).toBeLessThanOrEqual(0.5);
+        }
       }
+    }
+  });
+  it("flags a single die that exceeds the target", () => {
+    expect(damageFormula(ROWS[0], 20).overshoot).toBe(true);
+    expect(damageFormula(ROWS[3], 8).overshoot).toBe(false);
+  });
+  it("book dice never overshoot", () => {
+    for (const row of ROWS) {
+      expect(damageFormula(row, 8).overshoot).toBe(false);
+      if (row[6]) expect(damageFormula(row, 8, 2).overshoot).toBe(false);
     }
   });
 });
@@ -116,6 +145,29 @@ describe("resolveStandard", () => {
     expect(resolveStandard({ ...base, hpLevel: 0, abilities: 5 }).hpLevel).toBe("1/4");
     expect(resolveStandard(base).shifted).toBe(false);
   });
+  it("resolves each attack as an alternative using the full damage per round", () => {
+    const r = resolveStandard({
+      ...base,
+      attacks: [
+        { name: "Stab", count: 1 },
+        { name: "Shoot", count: 2, attackType: "range" },
+      ],
+    });
+    expect(r.attacks.map((a) => a.formula)).toEqual(["2d8+2", "1d8+1"]);
+    expect(r.attacks[1]).toMatchObject({ name: "Shoot", attackType: "range", damageType: "slashing" });
+  });
+  it("lets each attack use its own die", () => {
+    const r = resolveStandard({
+      ...base,
+      attacks: [{ name: "Bite", die: 4 }, { name: "Slam", die: 12 }, { name: "Default" }],
+    });
+    expect(r.attacks.map((a) => a.die)).toEqual([4, 12, 8]);
+    expect(r.attacks[0].formula).toBe("1d4+8");
+    expect(r.attacks[2].formula).toBe("2d8+2");
+  });
+  it("defaults to one attack", () => {
+    expect(resolveStandard(base).attacks).toHaveLength(1);
+  });
   it("flunkies cannot crit", () => {
     expect(resolveStandard({ ...base, flunky: true }).canCrit).toBe(false);
     expect(resolveStandard(base).canCrit).toBe(true);
@@ -124,17 +176,47 @@ describe("resolveStandard", () => {
 
 describe("resolveMinion", () => {
   it("has no HP, one die, and cannot crit", () => {
-    expect(resolveMinion({ minionLevel: 0, die: "6" })).toMatchObject({
-      mode: "minion",
-      hp: null,
-      formula: "1d6",
-      canCrit: false,
-      hpLevel: "1/4",
-    });
+    const r = resolveMinion({ minionLevel: 0, die: "6" });
+    expect(r).toMatchObject({ mode: "minion", hp: null, canCrit: false, hpLevel: "1/4" });
+    expect(r.attacks).toHaveLength(1);
+    expect(r.attacks[0]).toMatchObject({ formula: "1d6", avg: 3.5, count: 1 });
+  });
+  it("uses the first attack's die", () => {
+    expect(resolveMinion({ minionLevel: 0, die: 8, attacks: [{ die: 4 }] }).attacks[0].formula).toBe("1d4");
+  });
+  it("keeps only the first attack and ignores its multiplier", () => {
+    const r = resolveMinion({ minionLevel: 0, die: 4, attacks: [{ name: "Stab", count: 3 }, { name: "Other" }] });
+    expect(r.attacks).toHaveLength(1);
+    expect(r.attacks[0]).toMatchObject({ name: "Stab", count: 1 });
   });
   it("resolve dispatches on mode", () => {
     expect(resolve({ mode: "minion", minionLevel: 0, die: 4 }).mode).toBe("minion");
     expect(resolve({ ...base, mode: "standard" }).mode).toBe("standard");
+  });
+});
+
+describe("attackDescription", () => {
+  it("states the formula, type and average", () => {
+    const text = attackDescription({ formula: "2d8+2", damageType: "fire", avg: 11, count: 1, notes: "" });
+    expect(text).toContain("<strong>2d8+2</strong> fire damage (avg 11)");
+  });
+  it("rounds a fractional average to one decimal", () => {
+    expect(attackDescription({ formula: "1d6", damageType: "fire", avg: 3.5, count: 1 })).toContain("avg 3.5");
+  });
+  it("adds the multiplier, minion rule and escaped notes", () => {
+    const text = attackDescription(
+      { formula: "1d8+1", damageType: "slashing", avg: 5.5, count: 2, notes: "On crit: <b>Prone</b>" },
+      { minion: true },
+    );
+    expect(text).toContain("Make 2 attacks");
+    expect(text).toContain("Follows minion rules");
+    expect(text).toContain("On crit: &lt;b&gt;Prone&lt;/b&gt;");
+  });
+});
+
+describe("escapeHtml", () => {
+  it("escapes markup characters", () => {
+    expect(escapeHtml(`<a href="x">&</a>`)).toBe("&lt;a href=&quot;x&quot;&gt;&amp;&lt;/a&gt;");
   });
 });
 

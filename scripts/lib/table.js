@@ -49,7 +49,52 @@ export const MINION_DIE_BY_PARTY_LEVEL = [
 export const SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
 export const TOKEN_SIZE = { tiny: 0.5, small: 0.5, medium: 1, large: 2, huge: 3, gargantuan: 4 };
 
-export const DAMAGE_TYPES = [
-  "bludgeoning", "piercing", "slashing", "acid", "cold", "fire", "force", "lightning",
-  "necrotic", "poison", "psychic", "radiant", "thunder",
+// Damage types grouped for the attack card chips. Icons are Font Awesome free solid classes.
+export const DAMAGE_TYPE_GROUPS = [
+  {
+    id: "physical",
+    types: [
+      { id: "bludgeoning", icon: "fa-hammer" },
+      { id: "piercing", icon: "fa-bullseye" },
+      { id: "slashing", icon: "fa-khanda" },
+    ],
+  },
+  {
+    id: "elemental",
+    types: [
+      { id: "acid", icon: "fa-flask" },
+      { id: "cold", icon: "fa-snowflake" },
+      { id: "fire", icon: "fa-fire" },
+      { id: "lightning", icon: "fa-bolt" },
+      { id: "poison", icon: "fa-skull-crossbones" },
+    ],
+  },
+  {
+    id: "other",
+    types: [
+      { id: "force", icon: "fa-burst" },
+      { id: "necrotic", icon: "fa-skull" },
+      { id: "psychic", icon: "fa-brain" },
+      { id: "radiant", icon: "fa-sun" },
+    ],
+  },
 ];
+
+export const DAMAGE_TYPES = DAMAGE_TYPE_GROUPS.flatMap((g) => g.types.map((t) => t.id));
+
+export const MAX_ATTACK_COUNT = 3;
+
+/**
+ * Share of an attack's average damage that comes from dice (the rest is the flat bonus), per die size.
+ * Our own heuristic, fitted to the GMG bestiary (tests/data/bestiary.js, checked in tests/bestiary.test.js); the
+ * book gives no formula. What the bestiary shows: most monsters use one die plus a flat bonus, so smaller dice
+ * and multi-attack forms have small shares, while d8 (the book's own sample dice) and d20 are dice-heavy.
+ * d8 only uses it where the book gives no sample dice.
+ */
+export const DIE_DICE_SHARE = { 4: 0.25, 6: 0.3, 8: 0.7, 10: 0.5, 12: 0.3, 20: 0.9 };
+
+/** Most dice an attack of this die size gets. Undead d4 attacks are always one die with a big bonus. */
+export const DIE_MAX_DICE = { 4: 1 };
+
+/** A single die whose average exceeds the target by more than this is flagged as overshooting the table. */
+export const OVERSHOOT_TOLERANCE = 1.5;

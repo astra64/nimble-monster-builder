@@ -1,4 +1,23 @@
-/** Actor description text. Pure, so it is unit-tested. */
+/** Actor and attack description text. Pure, so it is unit-tested. */
+
+export const escapeHtml = (text) =>
+  String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+/** Attack item description: the damage formula as text, the multiplier, then the GM's notes. */
+export function attackDescription(attack, { minion = false } = {}) {
+  const avg = Number.isInteger(attack.avg) ? attack.avg : Number(attack.avg).toFixed(1);
+  const parts = [`<p>Deals <strong>${attack.formula}</strong> ${attack.damageType} damage (avg ${avg}).</p>`];
+  if (attack.count > 1) parts.push(`<p>Make ${attack.count} attacks, each dealing this damage.</p>`);
+  if (minion) parts.push("<p>Follows minion rules.</p>");
+  const notes = String(attack.notes ?? "").trim();
+  if (notes) parts.push(`<p>${escapeHtml(notes)}</p>`);
+  return parts.join("");
+}
+
 export function buildDescription(r, data) {
   const stats = `<p><strong>Save DC:</strong> ${r.saveDC} &nbsp; <strong>CR equiv.:</strong> ${r.cr}</p>`;
 

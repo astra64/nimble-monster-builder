@@ -51,14 +51,15 @@ actors; search for `toActorData`).
 
 ## Status
 
-- v0.3.0 (stages 0-3 of the roadmap) written, **not yet tested in Foundry** (no way to run Foundry from the coding
-  session). `npm test` passes (20 tests); all scripts pass `node --check`. The ApplicationV2 window, template and
-  CSS have never been rendered.
-- First thing to do: enable the module in a Nimble world, click **Monster Builder** on the Actors tab, create a
-  standard monster and a minion, in both light and dark themes, and report console errors. Things to look at: sidebar button placement, window
-  layout, whether a `minion` actor accepts `hp` 1/1 and the `armor` field, whether `isFlunky` behaves.
+- v0.4.0 (stages 0-4 of the roadmap). `npm test` passes (35 tests); all scripts pass `node --check`. The builder
+  window has been opened and reviewed in Foundry (layout, themes, attack cards, damage chips); the user's feedback
+  is folded in.
+- **Still not confirmed in Foundry:** actually creating actors. Create a standard monster (several attacks), a
+  flunky and a minion, and check: console errors, whether a `minion` actor accepts `hp` 1/1 and the `armor` field,
+  whether `isFlunky` behaves, that each attack becomes one item with the right formula, damage type and range, and
+  that the sidebar button sits well in the Actors header.
 
-## UX plan (stage 3 built; attacks list, damage chips and abilities still to build)
+## UX plan (stages 3-4 built; abilities tab still to build)
 
 Scope: standard monsters (incl. flunkies) and minions. Legendary monsters are a future feature.
 GMG text extracted with `pdftotext -layout`; relevant pages are 24-30 (Running Monsters, Fine Tuning, Monster Builder).
@@ -82,15 +83,15 @@ Feedback on v0.2.0 and decisions:
   type (d4 "slow, with BIG bonus damage", d6 "small, chaotic, likely to miss or crit", d8 "balanced and reliable
   attackers", d10 "stronger than humans", d12 "superhumanly strong/accurate", d20 "massive damage"). In Minion mode
   the text also gives the party levels the GMG suggests for that die (d4 1-3, d6 3-5, d8 5-10, d10 10-13, d12 13-17,
-  d20 17-20). Stage 4 adds average damage and crit dice to that line. The die is shared by all attacks. Text lives
-  in `lang/en.json` (`NMB.Builder.DieNote`).
+  d20 17-20). Each attack card shows its own average. The die is chosen **per attack** (inside each attack card; a new
+  card starts with the previous card's die). Text lives in `lang/en.json` (`NMB.Builder.DieNote`).
 - **Attacks tab:** an "Add attack" button and a list of collapsible attack cards. Each card: name, damage type,
   melee / ranged (default range 8), multiplier x1 / x2 / x3, notes (for example "On crit: Prone"). **Each attack is
   an alternative**: it gets the full damage per round divided by its multiplier, as in the book's "Stab OR Shoot".
   The generated item description contains the formula as text ("Deals 2d8+2 slashing damage (avg 11).") followed by
   the notes. Minions get one fixed single-die attack (name, type, range only).
 - **Damage type:** grouped toggle chips with icons (Physical: bludgeoning, piercing, slashing; Elemental: acid,
-  cold, fire, lightning, poison, thunder; Other: force, necrotic, psychic, radiant) instead of a dropdown. The
+  cold, fire, lightning, poison; Other: force, necrotic, psychic, radiant) instead of a dropdown. The
   collapsed card shows only the chosen type.
 - **Abilities tab:** searchable checklist from the GMG list plus a custom entry. **Cost is not automatic**: each
   ticked ability row has its own buttons `HP -1` / `Damage -1` / `Free`; the stat card applies the sum. No default
@@ -119,24 +120,37 @@ Bestiary patterns (per-attack damage vs the table's damage per round, divided by
 - Attack counts go (2×) from level 1 and (3×) at about level 4+ (Bandit Captain 3× `1d8+1`, Gnoll Packleader 3×).
 - Typical ranges: Range 8 for thrown/shot, 12 for bows, 6 for webs/spit. The builder currently uses 6.
 
-Proposed rule ("dice share"): for each die size, a share of the per-attack average damage comes from dice, the
-remainder from the flat bonus.
-`dice = max(1, round(share × target / avgDie))`, `bonus = max(0, round(target − dice × avgDie))`.
+Rule as built ("dice share", `damageFormula` in `lib/stats.js`): for each die size, a share of the per-attack
+average damage comes from dice, the remainder from the flat bonus.
+`dice = clamp(round(share x target / avgDie), 1, maxDice)`, `bonus = max(0, round(target - dice x avgDie))`, a
+half-point tie rounds down. d8 uses the book's sample dice where the book gives them (single and "(2x)").
+
+**Tuned against the whole bestiary** (63 attacks from 54 standard monsters, transcribed in
+`tests/data/bestiary.js`; "base" attacks only, not conditional bites or weak utility webs). Findings:
+- Monsters spend about the table's damage per round (median 0.9x), so the table is understood correctly.
+- Most monsters use **one die plus a flat bonus**; extra dice appear mainly on single (x1) attacks with a high
+  target. d4 is always one die (15 of 16 attacks, up to a +40 bonus; the only exception is a caster). d10 and d12
+  are one die in all but one case. d20 is nearly all dice (`1d20`, `2d20`).
+- The book's own d8 "(2x)" column implies a dice share of about 0.72 (target 12 gives `2d8+4`, target 16.5 gives
+  `3d8+3`).
+- Fitting the share per die to the observed dice counts gave: d4 about 0.05 (so: one die), d6 0.3, d8 0.7, d10
+  about 0.5 (only 3 samples), d12 0.3, d20 0.9.
 
 | die | d4 | d6 | d8 | d10 | d12 | d20 |
 |---|---|---|---|---|---|---|
-| share | ~25% | ~35% | the book's d8 column as is | ~55% | ~60% | ~70% |
+| old share (guess) | 25% | 40% | 60% | 70% | 75% | 85% |
+| **share (tuned)** | 25%, max 1 die | 30% | 70% | 50% | 30% | 90% |
 
-Checks: Ghoul L1 gives `1d4+8` (exact); Gray Ooze 2× gives `1d6+2` (exact); Gnoll 2× gives `1d10` (exact); Ogre
-Zombie 2× gives `1d4+7` (book `1d4+8`). The Hill Giant gives `2d6+10` (book `1d6+15`), so shares are a default,
-not a law. The shares are tunable in `table.js`.
+Fit: the generated number of dice equals the book's number for **41 of 52** base attacks (79%); the old guesses
+managed 33 of 52 (63%). The rest are designers choosing another style (Bugbear `2d6+4` against our `1d6+9`, the
+Hill Giant `1d6+15` against `2d6+10`, Druid `4d4+10`). `tests/bestiary.test.js` fails if the fit drops below 75%.
+Sample output (single attack, then 2x): d4 L1 `1d4+8`, L12 `1d4+32`; d6 L8 `2d6+19`, L12 2x `2d6+10`; d12 L8
+`1d12+19`; d20 L4 `2d20`. d10 and d20 are thinly sampled, so treat them as the least certain.
 
-Known gap in the current formula (`damageFormula`, 50% dice share for every die): when one die's average exceeds
-the target (d12 or d20 at the lowest rows) the result overshoots the table. Stage 4 should handle this, for
-example by capping and flagging it in the UI.
+Overshoot: when one die's average already exceeds the per-attack target (d12 or d20 at the lowest rows) the result
+cannot match the table; the formula keeps one die and flags `overshoot`, and the attack card shows a warning.
 
-UI: show `avg X.X (table Y)` plus "crit adds N dice" next to the die picker. The average is of the formula as
-built (flat-bonus rounding can drift by 0.5), against the table target.
+UI: each attack card shows the formula and `avg X (table Y)`.
 
 Alternatives considered: (a) keep the d8 dice count and flatten with the bonus (breaks for d20, which overshoots
 the target, and for d4 at high levels); (b) a Steady-to-Swingy slider replacing fixed shares (more control, more UI).
@@ -175,10 +189,11 @@ Do not start a stage until told. Each stage ends with something testable in Foun
    radios; die radio row (die value only) with grey suggestion text under it (party levels too in Minion mode,
    replacing the party-level field); Misc tab (flunky, open sheet); Create closes the window. No
    new rules. Uses the existing single attack.
-4. **Attacks and die size.** Attack list with add / remove, collapsible cards, damage type chips, melee / ranged
-   (default range 8), x1 / x2 / x3, notes, generated descriptions with the formula. Dice-share formula in `lib/`
-   (see research below), tested against bestiary examples; a grey line under the die row shows average vs table and
-   crit dice.
+4. **Attacks and die size.** DONE (untested in Foundry). Attack list with add / remove, collapsible cards, damage type
+   chips, melee / ranged (ranged distance 8), x1 / x2 / x3, notes, generated descriptions with the formula. Dice-share
+   formula in `lib/stats.js` (`damageFormula`), tested against bestiary examples. Each card shows the formula, its
+   average against the table's per-attack target, and a warning when one die already exceeds the target. (The
+   "crit dice" idea was dropped: the crit rules are not confirmed.)
 5. **Abilities.** `abilities.js` with the GMG list (~45 names and descriptions, p.30), searchable checklist,
    custom entry, each adds a `monsterFeature` item; per-ability cost buttons (`HP -1` / `Damage -1` / `Free`),
    uncosted abilities flagged on the stat card. State the defaults (speed 6, reach 1, d20 saves) in the description.
@@ -206,7 +221,6 @@ Do not start a stage until told. Each stage ends with something testable in Foun
 - The sidebar button selectors (`.header-actions`, `.directory-header`) may need adjusting for v14 markup.
 - Nimble schema field names are undocumented; a system update could break actor creation (fix in `builder.js`).
 - Minions are stored with 1/1 HP (Nimble's minion actor may ignore HP entirely; verify in Foundry).
-- Attack is a single attack; the "(2×)" form is only noted in the item description.
 
 ## Before publishing
 
