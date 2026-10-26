@@ -6,6 +6,7 @@ import {
   buildDescription,
   damageFormula,
   minionDieForPartyLevel,
+  partyLevelRange,
   resolve,
   resolveMinion,
   resolveStandard,
@@ -74,6 +75,18 @@ describe("minionDieForPartyLevel", () => {
     expect(minionDieForPartyLevel(0)).toBe(4);
     expect(minionDieForPartyLevel(99)).toBe(20);
     expect(minionDieForPartyLevel("")).toBe(4);
+  });
+});
+
+describe("partyLevelRange", () => {
+  it("gives the GMG party level range for each die", () => {
+    expect(partyLevelRange(4)).toBe("1-3");
+    expect(partyLevelRange("6")).toBe("3-5");
+    expect(partyLevelRange(8)).toBe("5-10");
+    expect(partyLevelRange(20)).toBe("17-20");
+  });
+  it("is null for a die the GMG does not list", () => {
+    expect(partyLevelRange(3)).toBeNull();
   });
 });
 

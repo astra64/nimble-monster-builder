@@ -1,6 +1,13 @@
-/* Nimble Monster Builder styles. House style shared with the other astra64 modules. */
+/*
+ * Nimble Monster Builder styles. House style shared with the other astra64 modules.
+ * Theme-safe: no fixed light or dark colours. Tints are mixed from currentColor, so they follow
+ * Foundry's light and dark themes.
+ */
 body {
   --nmb-accent: #7a9928;
+  --nmb-line: color-mix(in srgb, currentColor 25%, transparent);
+  --nmb-tint: color-mix(in srgb, currentColor 7%, transparent);
+  --nmb-accent-tint: color-mix(in srgb, var(--nmb-accent) 38%, transparent);
 }
 
 .nmb-app .window-content {
@@ -13,88 +20,216 @@ body {
   flex-direction: column;
   height: 100%;
   gap: 0.5rem;
-  padding: 0.5rem 0.75rem 0;
-  background: #ede5d9;
+  padding: 0.6rem 0.75rem 0;
 }
 
+/* Header: name, mode toggle, stat card */
 .nmb-header {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
-.nmb-chips {
+.nmb-title-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.6rem;
 }
 
-.nmb-chip {
-  padding: 0.1rem 0.6rem;
-  border: 1px solid color-mix(in srgb, var(--color-border-light-primary) 72%, transparent);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-cool-2) 48%, transparent);
+.nmb-title-row {
+  align-items: flex-start;
+}
+
+.nmb-title-fields {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.nmb-name {
+  font-size: var(--font-size-16, 16px);
+  font-weight: 600;
+}
+
+.nmb-type {
   font-size: var(--font-size-12, 12px);
 }
 
-/* Mode tabs */
+/* Segmented controls (mode toggle, armor, die) */
+.nmb-seg-group {
+  display: inline-flex;
+  border: 1px solid var(--nmb-line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.nmb-seg-btn,
+.nmb-seg span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.6rem;
+  padding: 0.2rem 0.7rem;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: var(--font-size-12, 12px);
+  line-height: 1.3;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.nmb-seg-group > * + * {
+  border-left: 1px solid var(--nmb-line);
+}
+
+.nmb-seg-btn {
+  width: auto;
+  height: auto;
+  margin: 0;
+}
+
+.nmb-seg-btn:hover,
+.nmb-seg:hover span {
+  background: var(--nmb-tint);
+}
+
+.nmb-seg-btn.active,
+.nmb-seg input:checked + span {
+  background: var(--nmb-accent-tint);
+  font-weight: 600;
+}
+
+.nmb-seg {
+  display: flex;
+  margin: 0;
+  position: relative;
+}
+
+.nmb-seg input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.nmb-seg input:focus-visible + span {
+  outline: 2px solid var(--nmb-accent);
+  outline-offset: -2px;
+}
+
+.nmb-radios .nmb-seg {
+  flex: 1;
+}
+
+.nmb-radios .nmb-seg span {
+  flex: 1;
+}
+
+/* Stat card */
+.nmb-card {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.35rem 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--nmb-line);
+  border-radius: 6px;
+  background: var(--nmb-tint);
+}
+
+.nmb-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.nmb-stat-label {
+  font-size: var(--font-size-11, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+}
+
+.nmb-stat-value {
+  font-size: 1.3rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.nmb-card-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--nmb-line);
+  font-size: var(--font-size-12, 12px);
+  opacity: 0.85;
+}
+
+.nmb-card-note[hidden] {
+  display: none;
+}
+
+/* Tabs */
 .nmb-tabs {
   display: flex;
   gap: 0.25rem;
-  border-bottom: 1px solid var(--color-border-light-primary);
+  border-bottom: 1px solid var(--nmb-line);
 }
 
 .nmb-tab {
-  padding: 0.3rem 0.8rem;
+  padding: 0.3rem 0.9rem;
   border: 1px solid transparent;
-  border-bottom: none;
+  border-bottom: 2px solid transparent;
   border-radius: 4px 4px 0 0;
   cursor: pointer;
   font-size: var(--font-size-12, 12px);
 }
 
 .nmb-tab:hover {
-  background: color-mix(in srgb, var(--color-cool-3) 40%, transparent);
+  background: var(--nmb-tint);
 }
 
 .nmb-tab.active {
-  border-color: var(--color-border-light-primary);
-  border-bottom: 2px solid var(--nmb-accent);
-  background: color-mix(in srgb, var(--color-cool-2) 40%, #d6d2c8 75%);
+  border-color: var(--nmb-line);
+  border-bottom-color: var(--nmb-accent);
+  background: var(--nmb-tint);
   font-weight: 600;
 }
 
 /* Panels */
 .nmb-panels {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3rem;
   flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
 
-.nmb-heading {
-  margin: 0.4rem 0 0.1rem;
-  padding-bottom: 0.15rem;
-  border-bottom: 1px solid var(--color-border-light-primary);
-  font-size: var(--font-size-14, 14px);
-  font-weight: 600;
-  line-height: 1.1;
+.nmb-panel {
+  display: none;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.2rem 0 0.4rem;
 }
 
-.nmb-heading:first-child {
-  margin-top: 0;
+.nmb-panel.active {
+  display: flex;
 }
 
 .nmb-row {
   display: grid;
   grid-template-columns: 9.5em minmax(0, 1fr);
   gap: 0.5rem;
-  align-items: center;
+  align-items: start;
 }
 
-.nmb-row label {
+.nmb-row > label,
+.nmb-row > .nmb-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 1.9rem;
   font-size: var(--font-size-12, 12px);
 }
 
@@ -105,15 +240,58 @@ body {
   min-width: 0;
 }
 
+.nmb-inline {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.nmb-inline select {
+  flex: 1;
+}
+
 .nmb-check {
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  white-space: nowrap;
+  min-height: 1.9rem;
 }
 
 .nmb-check input {
   margin: 0;
+}
+
+.nmb-hint {
+  margin: 0.2rem 0 0;
+  font-size: var(--font-size-11, 11px);
+  opacity: 0.65;
+}
+
+/* Level link button */
+.nmb-link {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.nmb-link[aria-pressed="true"] {
+  background: var(--nmb-accent-tint);
+}
+
+/* Linked vs separate levels. A minion always uses the single level picker. */
+.nmb-root [data-unlinked-only] {
+  display: none;
+}
+
+.nmb-root[data-mode="standard"][data-linked="false"] [data-unlinked-only] {
+  display: block;
+}
+
+.nmb-root[data-mode="standard"][data-linked="false"] [data-linked-only] {
+  display: none;
 }
 
 /* Mode-dependent fields: shown only for their mode. */
@@ -124,38 +302,26 @@ body {
 
 /* Footer */
 .nmb-footer {
-  position: sticky;
-  bottom: 0;
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  justify-content: flex-end;
   margin: 0 -0.75rem;
-  padding: 0.35rem 0.75rem;
-  border-top: 1px solid var(--color-border-light-primary);
-  background: #d6d2c8;
-}
-
-.nmb-summary {
-  flex: 1;
-  font-size: var(--font-size-11, 11px);
-  opacity: 0.85;
-}
-
-.nmb-footer .nmb-check {
-  font-size: var(--font-size-11, 11px);
+  padding: 0.4rem 0.75rem;
+  border-top: 1px solid var(--nmb-line);
 }
 
 .nmb-create {
   width: auto;
-  min-height: 28px;
-  height: 28px;
-  padding: 0.16rem 0.9rem;
-  border: 1px solid color-mix(in srgb, var(--nmb-accent) 45%, var(--color-border-light-primary));
-  background: color-mix(in srgb, var(--nmb-accent) 28%, var(--color-cool-1) 72%);
-  color: var(--color-text-dark-primary);
+  min-height: 30px;
+  height: 30px;
+  padding: 0.16rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--nmb-accent) 60%, transparent);
+  background: var(--nmb-accent-tint);
   font-weight: 600;
   line-height: 1.1;
-  text-shadow: none;
+}
+
+.nmb-create:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--nmb-accent) 55%, transparent);
 }
 
 .nmb-create:disabled {

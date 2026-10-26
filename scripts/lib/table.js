@@ -32,14 +32,8 @@ export const ROWS = [
 
 export const ARMOR_COL = { none: 1, medium: 2, heavy: 3 };
 
-export const DIE_HINTS = {
-  4: "undead",
-  6: "goblins",
-  8: "humans (default)",
-  10: "beasts",
-  12: "giants",
-  20: "mightiest creatures",
-};
+// Damage dice offered by the builder. The GMG's thematic guidelines per die live in lang/en.json (NMB.Builder.DieNote).
+export const DICE = [4, 6, 8, 10, 12, 20];
 
 // GMG p.26 suggested minion die by party level: [highest party level, die]. The book's ranges share their
 // boundary levels (1-3, 3-5, 5-10, ...); a boundary level takes the lower die.

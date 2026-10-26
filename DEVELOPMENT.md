@@ -51,14 +51,14 @@ actors; search for `toActorData`).
 
 ## Status
 
-- v0.2.0 (stages 0-2 of the roadmap) written, **not yet tested in Foundry** (no way to run Foundry from the coding
+- v0.3.0 (stages 0-3 of the roadmap) written, **not yet tested in Foundry** (no way to run Foundry from the coding
   session). `npm test` passes (20 tests); all scripts pass `node --check`. The ApplicationV2 window, template and
   CSS have never been rendered.
 - First thing to do: enable the module in a Nimble world, click **Monster Builder** on the Actors tab, create a
-  standard monster and a minion, and report console errors. Things to look at: sidebar button placement, window
+  standard monster and a minion, in both light and dark themes, and report console errors. Things to look at: sidebar button placement, window
   layout, whether a `minion` actor accepts `hp` 1/1 and the `armor` field, whether `isFlunky` behaves.
 
-## UX plan (revised after first look, not yet built)
+## UX plan (stage 3 built; attacks list, damage chips and abilities still to build)
 
 Scope: standard monsters (incl. flunkies) and minions. Legendary monsters are a future feature.
 GMG text extracted with `pdftotext -layout`; relevant pages are 24-30 (Running Monsters, Fine Tuning, Monster Builder).
@@ -67,23 +67,23 @@ Feedback on v0.2.0 and decisions:
 
 - **Dark mode:** text was unreadable because the CSS hardcodes light backgrounds. Use only Foundry theme variables
   and `color-mix` tints, no fixed light colours; check both themes.
-- **Header (always visible):** name field, Standard / Minion segmented toggle, and a **stat card** (replaces the
-  chips and the footer summary): large HP, damage per round, Save DC, CR, plus one line explaining the mapping
-  and warnings (uncosted abilities, damage overshoot, flunky). Footer holds only Create.
+- **Header (always visible):** name field with the creature type field directly under it, Standard / Minion
+  segmented toggle, and a **stat card** with six stats: Level, HP, Armor (-, M, H), Damage, Save DC, CR Equiv. No
+  sub-text. A one-line note under the stats appears only when special abilities lowered the table row (for
+  example "Special abilities: HP level 1 -> 1/3"); otherwise it is hidden. Footer holds only Create.
+  The Damage stat shows the damage per round from the table (a minion shows its die), not an attack formula,
+  because attacks are alternatives that each draw on that budget; the formulas live on the Attacks tab.
 - **Tabs by category:** Stats | Attacks | Abilities | Misc.
 - **Stats tab:** one **Level** picker with a link / unlink button; unlinked shows separate HP level and damage
   level pickers. (This replaces the Balanced / Glass cannon / Tank role idea.) Armor as radios with the GMG's
   60 / 30 / 10 hint in grey. Size and creature type.
-- **Damage die:** a row of radio buttons whose labels are **only the die** (d4 d6 d8 d10 d12 d20), no captions
-  and no per-die text. A small **? button** next to the "Damage die" label shows the GMG's whole "What die size to
-  use?" section in a tooltip on hover (also on focus, for keyboard users): "Default to d8 for custom monsters, it
-  offers a balanced chance of hitting, missing, and critting. Any die size is fine as long as overall damage per
-  round stays consistent. Thematic guidelines: d4 undead (slow, with BIG bonus damage), d6 goblins (small, chaotic,
-  likely to miss or crit), d8 humans (balanced and reliable attackers), d10 beasts (stronger than humans), d12 giants
-  (superhumanly strong/accurate), d20 the mightiest creatures (massive damage)." Stage 4 adds a small grey line
-  under the row with the average damage and crit dice for the selected die. In Minion mode the tooltip also lists
-  the GMG's suggested die by party level (d4 levels 1-3, d6 3-5, d8 5-10, d10 10-13, d12 13-17, d20 17-20), so the
-  separate party-level field goes away. The die is shared by all attacks. The text lives in `lang/en.json`.
+- **Damage die:** a row of radio buttons whose labels are only the die (d4 d6 d8 d10 d12 d20). Small grey text
+  under the row shows the GMG's thematic note for the selected die, worded as a suggestion and without the creature
+  type (d4 "slow, with BIG bonus damage", d6 "small, chaotic, likely to miss or crit", d8 "balanced and reliable
+  attackers", d10 "stronger than humans", d12 "superhumanly strong/accurate", d20 "massive damage"). In Minion mode
+  the text also gives the party levels the GMG suggests for that die (d4 1-3, d6 3-5, d8 5-10, d10 10-13, d12 13-17,
+  d20 17-20). Stage 4 adds average damage and crit dice to that line. The die is shared by all attacks. Text lives
+  in `lang/en.json` (`NMB.Builder.DieNote`).
 - **Attacks tab:** an "Add attack" button and a list of collapsible attack cards. Each card: name, damage type,
   melee / ranged (default range 8), multiplier x1 / x2 / x3, notes (for example "On crit: Prone"). **Each attack is
   an alternative**: it gets the full damage per round divided by its multiplier, as in the book's "Stab OR Shoot".
@@ -170,10 +170,10 @@ Do not start a stage until told. Each stage ends with something testable in Foun
 1. **Minion mode fix + Standard/Minion switch.** DONE (v0.2.0, untested in Foundry): no HP for minions (stored as
    1/1), single die, no crit, level default 1/4, flunky toggle.
 2. **ApplicationV2 shell.** DONE (v0.2.0, first look only; see the UX plan for the rework).
-3. **UI rework (house style, dark mode).** Theme-safe CSS; header with name, mode toggle and the stat card; tabs
-   Stats / Attacks / Abilities / Misc (Abilities can be an empty placeholder); linked level with unlink; armor
-   radios; die radio row (die value only) with a ? tooltip holding the whole "What die size to use?" guidance, plus the
-   party level table in Minion mode (replacing the party-level field); Misc tab (flunky, open sheet); Create closes the window. No
+3. **UI rework (house style, dark mode).** DONE (untested in Foundry). Theme-safe CSS; header with name, mode toggle and the stat card; tabs
+   Stats / Attacks / Abilities / Misc (Abilities holds a temporary counter that lowers HP one row per ability; the cost-target select was removed); linked level with unlink; armor
+   radios; die radio row (die value only) with grey suggestion text under it (party levels too in Minion mode,
+   replacing the party-level field); Misc tab (flunky, open sheet); Create closes the window. No
    new rules. Uses the existing single attack.
 4. **Attacks and die size.** Attack list with add / remove, collapsible cards, damage type chips, melee / ranged
    (default range 8), x1 / x2 / x3, notes, generated descriptions with the formula. Dice-share formula in `lib/`

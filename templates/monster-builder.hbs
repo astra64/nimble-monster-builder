@@ -1,118 +1,138 @@
-<form class="nmb-root" data-mode="{{mode}}" autocomplete="off">
+<form class="nmb-root" data-mode="{{mode}}" data-linked="true" autocomplete="off">
   <header class="nmb-header">
-    <div class="nmb-chips">
-      <span class="nmb-chip" data-for="standard">{{localize "NMB.Builder.Chips.HP"}} <b data-chip="hp">-</b></span>
-      <span class="nmb-chip">{{localize "NMB.Builder.Chips.Damage"}} <b data-chip="damage">-</b></span>
-      <span class="nmb-chip">{{localize "NMB.Builder.Chips.SaveDC"}} <b data-chip="saveDC">-</b></span>
-      <span class="nmb-chip">{{localize "NMB.Builder.Chips.CR"}} <b data-chip="cr">-</b></span>
+    <div class="nmb-title-row">
+      <div class="nmb-title-fields">
+        <input type="text" class="nmb-name" name="name" value="{{defaultName}}" aria-label="{{localize 'NMB.Builder.Fields.Name'}}">
+        <input type="text" class="nmb-type" name="creatureType" placeholder="{{localize 'NMB.Builder.Fields.CreatureTypePlaceholder'}}" aria-label="{{localize 'NMB.Builder.Fields.CreatureType'}}">
+      </div>
+      <div class="nmb-seg-group" role="group" aria-label="{{localize 'NMB.Builder.Fields.Mode'}}">
+        {{#each modes}}
+        <button type="button" class="nmb-seg-btn {{#if active}}active{{/if}}" data-action="switchMode" data-mode="{{id}}" aria-pressed="{{active}}">{{localize label}}</button>
+        {{/each}}
+      </div>
     </div>
+
+    <section class="nmb-card" aria-live="polite">
+      <div class="nmb-stat"><span class="nmb-stat-label">{{localize "NMB.Builder.Chips.Level"}}</span><b class="nmb-stat-value" data-stat="level">-</b></div>
+      <div class="nmb-stat"><span class="nmb-stat-label">{{localize "NMB.Builder.Chips.HP"}}</span><b class="nmb-stat-value" data-stat="hp">-</b></div>
+      <div class="nmb-stat"><span class="nmb-stat-label">{{localize "NMB.Builder.Chips.Armor"}}</span><b class="nmb-stat-value" data-stat="armor">-</b></div>
+      <div class="nmb-stat"><span class="nmb-stat-label">{{localize "NMB.Builder.Chips.Damage"}}</span><b class="nmb-stat-value" data-stat="damage">-</b></div>
+      <div class="nmb-stat"><span class="nmb-stat-label">{{localize "NMB.Builder.Chips.SaveDC"}}</span><b class="nmb-stat-value" data-stat="saveDC">-</b></div>
+      <div class="nmb-stat"><span class="nmb-stat-label">{{localize "NMB.Builder.Chips.CR"}}</span><b class="nmb-stat-value" data-stat="cr">-</b></div>
+      <p class="nmb-card-note" data-summary hidden></p>
+    </section>
   </header>
 
   <nav class="nmb-tabs">
-    {{#each modes}}
-    <a class="nmb-tab {{#if active}}active{{/if}}" data-action="switchMode" data-mode="{{id}}">{{localize label}}</a>
+    {{#each tabs}}
+    <a class="nmb-tab {{#if active}}active{{/if}}" data-action="switchTab" data-tab="{{id}}">{{localize label}}</a>
     {{/each}}
   </nav>
 
   <div class="nmb-panels">
-    <h3 class="nmb-heading">{{localize "NMB.Builder.Sections.Monster"}}</h3>
-    <div class="nmb-row">
-      <label for="nmb-name">{{localize "NMB.Builder.Fields.Name"}}</label>
-      <input id="nmb-name" type="text" name="name" value="{{defaultName}}">
-    </div>
-    <div class="nmb-row">
-      <label for="nmb-creatureType">{{localize "NMB.Builder.Fields.CreatureType"}}</label>
-      <input id="nmb-creatureType" type="text" name="creatureType" placeholder="{{localize 'NMB.Builder.Fields.CreatureTypePlaceholder'}}">
-    </div>
-    <div class="nmb-row">
-      <label for="nmb-size">{{localize "NMB.Builder.Fields.Size"}}</label>
-      <select id="nmb-size" name="size">
-        {{#each sizes}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
-      </select>
-    </div>
+    {{!-- Stats --}}
+    <section class="nmb-panel {{#if tabs.0.active}}active{{/if}}" data-tab="stats">
+      <div class="nmb-row">
+        <label for="nmb-level">{{localize "NMB.Builder.Fields.Level"}}</label>
+        <div class="nmb-inline">
+          <select id="nmb-level" name="level" data-linked-only>
+            {{#each levels}}<option value="{{value}}" {{#if selectedStandard}}selected{{/if}}>{{label}}</option>{{/each}}
+          </select>
+          <select name="hpLevel" data-unlinked-only aria-label="{{localize 'NMB.Builder.Fields.HpLevel'}}">
+            {{#each levels}}<option value="{{value}}" {{#if selectedStandard}}selected{{/if}}>HP: {{label}}</option>{{/each}}
+          </select>
+          <select name="dmgLevel" data-unlinked-only aria-label="{{localize 'NMB.Builder.Fields.DamageLevel'}}">
+            {{#each levels}}<option value="{{value}}" {{#if selectedStandard}}selected{{/if}}>Dmg: {{label}}</option>{{/each}}
+          </select>
+          <button type="button" class="nmb-link" data-action="toggleLink" data-for="standard"
+                  aria-pressed="true" data-tooltip="{{localize 'NMB.Builder.Fields.LinkHint'}}">
+            <i class="fa-solid fa-link"></i>
+          </button>
+        </div>
+      </div>
 
-    <h3 class="nmb-heading">{{localize "NMB.Builder.Sections.Stats"}}</h3>
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-hpLevel">{{localize "NMB.Builder.Fields.HpLevel"}}</label>
-      <select id="nmb-hpLevel" name="hpLevel">
-        {{#each levels}}<option value="{{value}}" {{#if selectedStandard}}selected{{/if}}>{{label}}</option>{{/each}}
-      </select>
-    </div>
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-dmgLevel">{{localize "NMB.Builder.Fields.DamageLevel"}}</label>
-      <select id="nmb-dmgLevel" name="dmgLevel">
-        {{#each levels}}<option value="{{value}}" {{#if selectedStandard}}selected{{/if}}>{{label}}</option>{{/each}}
-      </select>
-    </div>
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-armor">{{localize "NMB.Builder.Fields.Armor"}}</label>
-      <select id="nmb-armor" name="armor">
-        {{#each armors}}<option value="{{value}}">{{localize label}}</option>{{/each}}
-      </select>
-    </div>
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-flunky">{{localize "NMB.Builder.Fields.Flunky"}}</label>
-      <label class="nmb-check"><input id="nmb-flunky" type="checkbox" name="flunky"> {{localize "NMB.Builder.Fields.FlunkyHint"}}</label>
-    </div>
+      <div class="nmb-row" data-for="standard">
+        <span class="nmb-label">{{localize "NMB.Builder.Fields.Armor"}}</span>
+        <div>
+          <div class="nmb-seg-group nmb-radios" role="radiogroup">
+            {{#each armors}}
+            <label class="nmb-seg"><input type="radio" name="armor" value="{{value}}" {{#if checked}}checked{{/if}}><span>{{localize label}}</span></label>
+            {{/each}}
+          </div>
+          <p class="nmb-hint">{{localize "NMB.Builder.Fields.ArmorHint"}}</p>
+        </div>
+      </div>
 
-    <div class="nmb-row" data-for="minion">
-      <label for="nmb-minionLevel">{{localize "NMB.Builder.Fields.MinionLevel"}}</label>
-      <select id="nmb-minionLevel" name="minionLevel">
-        {{#each levels}}<option value="{{value}}" {{#if selectedMinion}}selected{{/if}}>{{label}}</option>{{/each}}
-      </select>
-    </div>
-    <div class="nmb-row" data-for="minion">
-      <label for="nmb-partyLevel">{{localize "NMB.Builder.Fields.PartyLevel"}}</label>
-      <input id="nmb-partyLevel" type="number" name="partyLevel" min="1" max="20" placeholder="{{localize 'NMB.Builder.Fields.PartyLevelHint'}}">
-    </div>
+      <div class="nmb-row">
+        <label for="nmb-size">{{localize "NMB.Builder.Fields.Size"}}</label>
+        <select id="nmb-size" name="size">
+          {{#each sizes}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
+        </select>
+      </div>
+    </section>
 
-    <div class="nmb-row">
-      <label for="nmb-die">{{localize "NMB.Builder.Fields.Die"}}</label>
-      <select id="nmb-die" name="die">
-        {{#each dice}}<option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}
-      </select>
-    </div>
+    {{!-- Attacks --}}
+    <section class="nmb-panel {{#if tabs.1.active}}active{{/if}}" data-tab="attacks">
+      <div class="nmb-row">
+        <span class="nmb-label">{{localize "NMB.Builder.Fields.Die"}}</span>
+        <div>
+          <div class="nmb-seg-group nmb-radios" role="radiogroup">
+            {{#each dice}}
+            <label class="nmb-seg"><input type="radio" name="die" value="{{value}}" {{#if checked}}checked{{/if}}><span>{{label}}</span></label>
+            {{/each}}
+          </div>
+          <p class="nmb-hint" data-die-hint></p>
+        </div>
+      </div>
+      <div class="nmb-row">
+        <label for="nmb-attackName">{{localize "NMB.Builder.Fields.AttackName"}}</label>
+        <input id="nmb-attackName" type="text" name="attackName" value="Attack">
+      </div>
+      <div class="nmb-row" data-for="standard">
+        <label for="nmb-twoAttacks">{{localize "NMB.Builder.Fields.TwoAttacks"}}</label>
+        <label class="nmb-check"><input id="nmb-twoAttacks" type="checkbox" name="twoAttacks"></label>
+      </div>
+      <div class="nmb-row">
+        <label for="nmb-damageType">{{localize "NMB.Builder.Fields.DamageType"}}</label>
+        <select id="nmb-damageType" name="damageType">
+          {{#each damageTypes}}<option value="{{this}}">{{this}}</option>{{/each}}
+        </select>
+      </div>
+      <div class="nmb-row">
+        <label for="nmb-attackType">{{localize "NMB.Builder.Fields.Range"}}</label>
+        <select id="nmb-attackType" name="attackType">
+          <option value="melee">{{localize "NMB.Builder.Range.Melee"}}</option>
+          <option value="range">{{localize "NMB.Builder.Range.Ranged"}}</option>
+        </select>
+      </div>
+    </section>
 
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-abilities">{{localize "NMB.Builder.Fields.Abilities"}}</label>
-      <input id="nmb-abilities" type="number" name="abilities" value="0" min="0" max="10">
-    </div>
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-abilityTo">{{localize "NMB.Builder.Fields.AbilityTo"}}</label>
-      <select id="nmb-abilityTo" name="abilityTo">
-        <option value="hp">{{localize "NMB.Builder.AbilityTo.HP"}}</option>
-        <option value="damage">{{localize "NMB.Builder.AbilityTo.Damage"}}</option>
-        <option value="split">{{localize "NMB.Builder.AbilityTo.Split"}}</option>
-      </select>
-    </div>
+    {{!-- Abilities (placeholder until the ability list arrives) --}}
+    <section class="nmb-panel {{#if tabs.2.active}}active{{/if}}" data-tab="abilities">
+      <p class="nmb-hint">{{localize "NMB.Builder.Abilities.Placeholder"}}</p>
+      <div class="nmb-row" data-for="standard">
+        <label for="nmb-abilities">{{localize "NMB.Builder.Fields.Abilities"}}</label>
+        <input id="nmb-abilities" type="number" name="abilities" value="0" min="0" max="10">
+      </div>
+      <p class="nmb-hint" data-for="minion">{{localize "NMB.Builder.Abilities.MinionNote"}}</p>
+    </section>
 
-    <h3 class="nmb-heading">{{localize "NMB.Builder.Sections.Attack"}}</h3>
-    <div class="nmb-row">
-      <label for="nmb-attackName">{{localize "NMB.Builder.Fields.AttackName"}}</label>
-      <input id="nmb-attackName" type="text" name="attackName" value="Attack">
-    </div>
-    <div class="nmb-row" data-for="standard">
-      <label for="nmb-twoAttacks">{{localize "NMB.Builder.Fields.TwoAttacks"}}</label>
-      <label class="nmb-check"><input id="nmb-twoAttacks" type="checkbox" name="twoAttacks"></label>
-    </div>
-    <div class="nmb-row">
-      <label for="nmb-damageType">{{localize "NMB.Builder.Fields.DamageType"}}</label>
-      <select id="nmb-damageType" name="damageType">
-        {{#each damageTypes}}<option value="{{this}}">{{this}}</option>{{/each}}
-      </select>
-    </div>
-    <div class="nmb-row">
-      <label for="nmb-attackType">{{localize "NMB.Builder.Fields.Range"}}</label>
-      <select id="nmb-attackType" name="attackType">
-        <option value="melee">{{localize "NMB.Builder.Range.Melee"}}</option>
-        <option value="range">{{localize "NMB.Builder.Range.Ranged"}}</option>
-      </select>
-    </div>
+    {{!-- Misc --}}
+    <section class="nmb-panel {{#if tabs.3.active}}active{{/if}}" data-tab="misc">
+      <div class="nmb-row" data-for="standard">
+        <label for="nmb-flunky">{{localize "NMB.Builder.Fields.Flunky"}}</label>
+        <label class="nmb-check"><input id="nmb-flunky" type="checkbox" name="flunky"> {{localize "NMB.Builder.Fields.FlunkyHint"}}</label>
+      </div>
+      <div class="nmb-row">
+        <label for="nmb-openSheet">{{localize "NMB.Builder.Fields.OpenSheet"}}</label>
+        <label class="nmb-check"><input id="nmb-openSheet" type="checkbox" name="openSheet" checked> {{localize "NMB.Builder.Fields.OpenSheetHint"}}</label>
+      </div>
+    </section>
   </div>
 
   <footer class="nmb-footer">
-    <span class="nmb-summary" data-summary></span>
-    <label class="nmb-check"><input type="checkbox" name="openSheet" checked> {{localize "NMB.Builder.OpenSheet"}}</label>
-    <button type="button" class="nmb-create" data-action="create"><i class="fa-solid fa-dragon"></i> {{localize "NMB.Builder.Create"}}</button>
+    <button type="button" class="nmb-create" data-action="create" data-tooltip="{{localize 'NMB.Builder.CreateHint'}}">
+      <i class="fa-solid fa-dragon"></i> {{localize "NMB.Builder.Create"}}
+    </button>
   </footer>
 </form>

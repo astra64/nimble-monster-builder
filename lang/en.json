@@ -7,63 +7,77 @@
         "Standard": "Standard",
         "Minion": "Minion"
       },
+      "Tabs": {
+        "Stats": "Stats",
+        "Attacks": "Attacks",
+        "Abilities": "Abilities",
+        "Misc": "Misc"
+      },
       "Chips": {
+        "Level": "Level",
         "HP": "HP",
+        "Armor": "Armor",
         "Damage": "Damage",
         "SaveDC": "Save DC",
-        "CR": "CR"
-      },
-      "Sections": {
-        "Monster": "Monster",
-        "Stats": "Stats (table lookup)",
-        "Attack": "Attack"
+        "CR": "CR Equiv."
       },
       "Fields": {
         "Name": "Name",
+        "Mode": "Monster kind",
         "CreatureType": "Creature type",
         "CreatureTypePlaceholder": "e.g. Humanoid",
         "Size": "Size",
+        "Level": "Level",
+        "LinkHint": "Linked: HP and damage use the same level. Click to set them separately (glass cannon, tank).",
         "HpLevel": "HP from level",
         "DamageLevel": "Damage from level",
         "Armor": "Armor",
+        "ArmorHint": "The GM Guide suggests roughly 60% unarmored, 30% medium and 10% heavy armor per session.",
         "Flunky": "Flunky",
         "FlunkyHint": "Cannot crit.",
         "Die": "Damage die",
         "Abilities": "Special abilities",
-        "AbilityTo": "Ability cost lowers",
-        "MinionLevel": "Minion level",
-        "PartyLevel": "Party level",
-        "PartyLevelHint": "Optional. Suggests a die size.",
         "AttackName": "Attack name",
         "TwoAttacks": "Two attacks (2×)",
         "DamageType": "Damage type",
-        "Range": "Range"
+        "Range": "Range",
+        "OpenSheet": "Open sheet",
+        "OpenSheetHint": "Open the new actor's sheet after creating."
+      },
+      "Abilities": {
+        "Placeholder": "The special ability list is coming in a later version. For now, enter how many special abilities you will add by hand; each one lowers HP by one table row, as the GM Guide suggests.",
+        "MinionNote": "Minions have no HP, so abilities cost nothing. The ability list is coming in a later version."
       },
       "Armor": {
         "None": "None",
         "Medium": "Medium",
         "Heavy": "Heavy"
       },
-      "AbilityTo": {
-        "HP": "HP (1 step each)",
-        "Damage": "Damage (1 step each)",
-        "Split": "Alternate HP / damage"
-      },
       "Range": {
         "Melee": "Melee",
         "Ranged": "Ranged"
       },
       "Level": "Level {level}",
-      "Summary": {
-        "Standard": "HP from level {hp}, damage from level {dmg} (~{dpr}/round).",
-        "Adjusted": "Adjusted for special abilities.",
-        "Minion": "Minion, level {level}. No HP: any damage kills it. Cannot crit, misses on a 1.",
-        "SuggestedDie": "Suggested for party level {party}: d{die}."
-      },
-      "OpenSheet": "Open sheet",
       "Create": "Create Monster",
+      "CreateHint": "Shift-click to keep this window open",
       "Created": "Created {name}.",
-      "DefaultName": "New Monster"
+      "DefaultName": "New Monster",
+      "ArmorLetter": {
+        "none": "-",
+        "medium": "M",
+        "heavy": "H"
+      },
+      "DieNote": {
+        "d4": "slow, with BIG bonus damage",
+        "d6": "small, chaotic, likely to miss or crit",
+        "d8": "balanced and reliable attackers",
+        "d10": "stronger than humans",
+        "d12": "superhumanly strong/accurate",
+        "d20": "massive damage"
+      },
+      "DieHint": "Thematic Example: {note}.",
+      "DieHintMinion": "The GM Guide suggests this die for party levels {levels}.",
+      "AbilityNote": "Special abilities: HP level {from} → {to}."
     }
   }
 }

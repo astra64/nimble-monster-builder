@@ -31,6 +31,13 @@ export function minionDieForPartyLevel(level) {
   return MINION_DIE_BY_PARTY_LEVEL.find(([max]) => lvl <= max)[1];
 }
 
+/** Party levels the GMG suggests a minion die for, e.g. "1-3" for d4. Null for a die the GMG does not list. */
+export function partyLevelRange(die) {
+  const i = MINION_DIE_BY_PARTY_LEVEL.findIndex(([, d]) => d === Number(die));
+  if (i < 0) return null;
+  return `${i === 0 ? 1 : MINION_DIE_BY_PARTY_LEVEL[i - 1][0]}-${MINION_DIE_BY_PARTY_LEVEL[i][0]}`;
+}
+
 /** Standard monster: apply the "special ability" penalty (1 step per ability) and look up the table. */
 export function resolveStandard({ hpLevel, dmgLevel, armor, die, abilities, abilityTo, twoAttacks, flunky }) {
   let hpIdx = Number(hpLevel);
